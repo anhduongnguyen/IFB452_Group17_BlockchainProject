@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TimeBlock</title>
+  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
+  <link rel="stylesheet" href="static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <div class="logo-container">
+        <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
+        <h1 class="app-title">TimeBlock</h1>
+      </div>
+      <p>Authenticate and trade luxury watches on the blockchain.</p>
+      
+      <button id="connectWallet">Connect MetaMask</button>
+      <p id="walletAddress" class="wallet-address"></p>
+
+      <div class="roles" style="display: none;">
+        <h2>Select Your Role</h2>
+        <a href="manufacturer.html" class="role-btn">Manufacturer</a>
+        <a href="retailer.html" class="role-btn">Retailer</a>
+        <a href="buyer.html" class="role-btn">Buyer</a>
+        <a href="reseller.html" class="role-btn">Reseller</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  const connectBtn = document.getElementById('connectWallet');
+  const roles = document.querySelector('.roles');
+  const walletAddress = document.getElementById('walletAddress');
+
+  connectBtn.addEventListener('click', async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const account = accounts[0];
+        walletAddress.textContent = `Connected: ${account}`;
+        connectBtn.style.display = 'none';
+        roles.style.display = 'flex';
+      } catch (error) {
+        alert('Connection rejected.');
+      }
+    } else {
+      alert('Please install MetaMask to continue.');
+    }
+  });
+</script>
+
+</body>
+</html>
