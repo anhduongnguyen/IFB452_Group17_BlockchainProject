@@ -1,14 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TimeBlock | Manufacturer</title>
-  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
-  <link rel="stylesheet" href="static/style.css"/>
+  <link rel="stylesheet" href="static/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
- <h1> test <h1>
+  <main class="container">
+    <section class="card">
+
+ 
+      <div class="back-button">
+        <a href="index.html">← Back</a>
+      </div>
+
+     
+      <div id="walletAddress" class="wallet-address">
+        <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
+        <span id="walletText">Connected wallet: Loading</span>
+      </div>
+
+      <h2 class="app-title" style="margin-top: 2rem;">Manufacturer</h2>
+
+     
+      <div class="form-section">
+        <div class="form-header">
+          <h3>Register New Watch</h3>
+          <button class="primary-btn">Register</button>
+        </div>
+        <div class="form-grid">
+          <input type="text" placeholder="Watch serial no.">
+          <input type="text" placeholder="Brand">
+          <input type="date" placeholder="Manufactured date">
+          <input type="text" placeholder="Additional metadata">
+        </div>
+      </div>
+
+  
+      <div class="action-grid">
+        <!-- Mint -->
+        <div class="action-box">
+          <h4>Mint new NFT</h4>
+          <select>
+            <option selected>select watch</option>
+          </select>
+          <button class="primary-btn full-width">mint TimeBlock NFT</button>
+        </div>
+
+     
+        <div class="action-box">
+          <h4>Assign to retailer</h4>
+          <select>
+            <option selected>wallet address</option>
+          </select>
+          <button class="primary-btn full-width">Assign</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <script>
+    const walletText = document.getElementById('walletText');
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          walletText.textContent = `Connected wallet: ${accounts[0]}`;
+        } catch (error) {
+          walletText.textContent = `Wallet not connected`;
+        }
+      } else {
+        walletText.textContent = `MetaMask not found`;
+      }
+    });
+  </script>
 </body>
 </html>

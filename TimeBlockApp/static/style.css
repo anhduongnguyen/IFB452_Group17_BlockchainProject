@@ -147,3 +147,96 @@ body {
   height: auto;
   margin-bottom: auto;
 }
+.back-button {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.back-button a {
+  text-decoration: none;
+  font-weight: 600;
+  color: #0066cc;
+}
+
+.form-section {
+  background-color: #eaf2f8;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-top: 2rem;
+  border: 1px solid #ccc;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-header h3 {
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-grid input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-grid {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.action-box {
+  background-color: #eaf2f8;
+  padding: 1rem;
+  border-radius: 10px;
+  width: 200px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.action-box h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.action-box select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+.primary-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.primary-btn:hover {
+  background-color: #005ecb;
+}
+
+.full-width {
+  width: 100%;
+}
