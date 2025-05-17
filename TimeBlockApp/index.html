@@ -9,48 +9,83 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main class="container">
+
+  
+  <main class="container" id="authScreen">
     <section class="card">
       <div class="logo-container">
         <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
         <h1 class="app-title">TimeBlock</h1>
       </div>
-      <p>Authenticate and trade luxury watches on the blockchain.</p>
-      
-      <button id="connectWallet">Connect MetaMask</button>
-      <p id="walletAddress" class="wallet-address"></p>
+      <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
+      <button id="connectWallet">
+        <img src="static/img/2048px-MetaMask_Fox.png" alt="MetaMask" class="wallet-icon">
+        Connect MetaMask
+      </button>
+    </section>
+  </main>
 
-      <div class="roles" style="display: none;">
+ 
+  <main class="container" id="mainApp" style="display: none;">
+    <section class="card">
+      <div class="logo-container">
+        <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
+        <h1 class="app-title">TimeBlock</h1>
+      </div>
+
+      <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
+
+      
+      <div id="walletAddress" class="wallet-address">
+        <img src="static/img/2048px-MetaMask_Fox.png" class="wallet-inline-icon" alt="Fox">
+        <span id="walletText"></span>
+      </div>
+
+      <div class="roles">
         <h2>Select Your Role</h2>
-        <a href="manufacturer.html" class="role-btn">Manufacturer</a>
-        <a href="retailer.html" class="role-btn">Retailer</a>
-        <a href="buyer.html" class="role-btn">Buyer</a>
-        <a href="reseller.html" class="role-btn">Reseller</a>
+        <div class="role-grid">
+          <a href="manufacturer.html" class="role-btn">
+            <img src="static/img/manufacture.png" class="role-icon" alt="Manufacturer Icon">
+            <span class="role-label">Manufacturer</span>
+          </a>
+          <a href="retailer.html" class="role-btn">
+            <img src="static/img/store.png" class="role-icon" alt="Retailer Icon">
+            <span class="role-label">Retailer</span>
+          </a>
+          <a href="buyer.html" class="role-btn">
+            <img src="static/img/buyer.png" class="role-icon" alt="Buyer Icon">
+            <span class="role-label">Buyer</span>
+          </a>
+          <a href="reseller.html" class="role-btn">
+            <img src="static/img/reseller.png" class="role-icon" alt="Reseller Icon">
+            <span class="role-label">Reseller</span>
+          </a>
+        </div>
       </div>
     </section>
   </main>
 
   <script>
-  const connectBtn = document.getElementById('connectWallet');
-  const roles = document.querySelector('.roles');
-  const walletAddress = document.getElementById('walletAddress');
+    const connectBtn = document.getElementById('connectWallet');
+    const authScreen = document.getElementById('authScreen');
+    const mainApp = document.getElementById('mainApp');
+    const walletText = document.getElementById('walletText');
 
-  connectBtn.addEventListener('click', async () => {
-    if (window.ethereum) {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const account = accounts[0];
-        walletAddress.textContent = `Connected: ${account}`;
-        connectBtn.style.display = 'none';
-        roles.style.display = 'flex';
-      } catch (error) {
-        alert('Connection rejected.');
+    connectBtn.addEventListener('click', async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const account = accounts[0];
+          walletText.textContent = `Connected: ${account}`;
+          authScreen.style.display = 'none';
+          mainApp.style.display = 'flex';
+        } catch (error) {
+          alert('Connection rejected.');
+        }
+      } else {
+        alert('Please install MetaMask to continue.');
       }
-    } else {
-      alert('Please install MetaMask to continue.');
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
