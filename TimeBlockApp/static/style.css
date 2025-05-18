@@ -201,9 +201,9 @@ body {
 
 .action-box {
   background-color: #eaf2f8;
-  padding: 1rem;
-  border-radius: 10px;
-  width: 200px;
+  padding: 2rem;            
+  border-radius: 12px;
+  width: 20rem;              
   border: 1px solid #ccc;
   box-sizing: border-box;
 }
@@ -213,13 +213,15 @@ body {
   margin-bottom: 0.75rem;
 }
 
+.action-box input,
 .action-box select {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.65rem;
+  margin-bottom: 1rem;     
   border-radius: 6px;
   border: 1px solid #ccc;
-  margin-bottom: 1rem;
   box-sizing: border-box;
+  font-size: 1rem;
 }
 
 .primary-btn {
@@ -239,4 +241,67 @@ body {
 
 .full-width {
   width: 100%;
+}
+
+
+.admin-card {
+  max-width: 600px;
+  margin: 5rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-card h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#assignRole {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #CFE8FF;
+  color: black;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+#status {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.role-display {
+  font-size: 0.95rem;
+  color: #444;
+  display: block;
+  margin-top: 0.3rem;
 }
