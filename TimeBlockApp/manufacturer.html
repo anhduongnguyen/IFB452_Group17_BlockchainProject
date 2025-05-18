@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TimeBlock | Manufacturer</title>
-  <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="static/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <main class="container">
     <section class="card">
 
- 
       <div class="back-button">
         <a href="index.html">← Back</a>
       </div>
 
-     
       <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
         <span id="walletText">Connected wallet: Loading</span>
@@ -24,32 +22,32 @@
 
       <h2 class="app-title" style="margin-top: 2rem;">Manufacturer</h2>
 
-     
+      <!-- Register New Watch -->
       <div class="form-section">
         <div class="form-header">
           <h3>Register New Watch</h3>
-          <button class="primary-btn">Register</button>
+          <button class="primary-btn" id="registerBtn">Register</button>
         </div>
         <div class="form-grid">
-          <input type="text" placeholder="Watch serial no.">
-          <input type="text" placeholder="Brand">
-          <input type="date" placeholder="Manufactured date">
-          <input type="text" placeholder="Additional metadata">
+          <input type="text" id="serial" placeholder="Watch serial no.">
+          <input type="text" id="brand" placeholder="Brand">
+          <input type="date" id="date" placeholder="Manufactured date">
+          <input type="text" id="metadata" placeholder="Model">
         </div>
       </div>
 
-  
+      <!-- Action Boxes -->
       <div class="action-grid">
-        <!-- Mint -->
+        <!-- Mint NFT -->
         <div class="action-box">
           <h4>Mint new NFT</h4>
-          <select>
-            <option selected>select watch</option>
+          <select id="watchDropdown">
+            <option selected disabled>Select watch</option>
           </select>
-          <button class="primary-btn full-width">mint TimeBlock NFT</button>
+          <button class="primary-btn full-width">Mint TimeBlock NFT</button>
         </div>
 
-     
+        <!-- Assign to Retailer -->
         <div class="action-box">
           <h4>Assign to retailer</h4>
           <select>
@@ -61,21 +59,254 @@
     </section>
   </main>
 
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <script>
     const walletText = document.getElementById('walletText');
+    const watchDropdown = document.getElementById("watchDropdown");
 
-    window.addEventListener('DOMContentLoaded', async () => {
+
+    const CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
+    const ABI = [
+      {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "watchId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "issuedTo",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "model",
+            "type": "string"
+          }
+        ],
+        "name": "WatchRegistered",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "watchId",
+            "type": "uint256"
+          }
+        ],
+        "name": "getWatchDetails",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "model",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "serialNumber",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "manufacturer",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "productionDate",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "issuedTo",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "_model",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "_serialNumber",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "_manufacturer",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "_productionDate",
+            "type": "string"
+          }
+        ],
+        "name": "registerWatch",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "watchCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "watches",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "model",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "serialNumber",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "manufacturer",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "productionDate",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "issuedTo",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    async function loadWatchOptions() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+      const count = await contract.watchCount();
+
+      watchDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+
+      for (let i = 1; i <= count; i++) {
+        const watch = await contract.getWatchDetails(i);
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `${watch.model} (${watch.serialNumber})`;
+        watchDropdown.appendChild(option);
+      }
+    }
+
+    async function registerWatch() {
+      const serial = document.getElementById("serial").value;
+      const brand = document.getElementById("brand").value;
+      const date = document.getElementById("date").value;
+      const model = document.getElementById("metadata").value;
+    
+      console.log("Register button clicked");
+      console.log({ serial, brand, date, model });
+    
+      if (!window.ethereum) {
+        alert("MetaMask not detected.");
+        return;
+      }
+    
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    
+      try {
+        const tx = await contract.registerWatch(model, serial, brand, date);
+        await tx.wait();
+        alert("Watch registered successfully!");
+        console.log("Transaction confirmed:", tx.hash);
+        await loadWatchOptions(); // reload after registration
+      } catch (err) {
+        console.error(err);
+        alert("Error registering watch: " + (err.data?.message || err.message));
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
       if (window.ethereum) {
         try {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          walletText.textContent = `Connected wallet: ${accounts[0]}`;
+          if (accounts.length > 0) {
+            walletText.textContent = `Connected wallet: ${accounts[0]}`;
+            await loadWatchOptions(); // Also load watch options on load
+          } else {
+            walletText.textContent = `Wallet not connected`;
+          }
         } catch (error) {
-          walletText.textContent = `Wallet not connected`;
+          walletText.textContent = `Connection error: ${error.message}`;
         }
       } else {
         walletText.textContent = `MetaMask not found`;
       }
+    
+      document.getElementById("registerBtn").addEventListener("click", registerWatch);
     });
   </script>
 </body>
