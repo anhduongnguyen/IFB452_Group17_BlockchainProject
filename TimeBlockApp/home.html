@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TimeBlock</title>
+  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
+  <link rel="stylesheet" href="static/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<main class="container" id="mainApp">
+  <section class="card">
+    <div class="logo-container">
+      <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
+      <h1 class="app-title">TimeBlock</h1>
+    </div>
+    <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
+
+    <div id="walletAddress" class="wallet-address">
+      <img src="static/img/2048px-MetaMask_Fox.png" class="wallet-inline-icon" alt="Fox">
+      <span id="walletText"></span><br>
+      <span id="roleText" class="role-display"></span>
+    </div>
+
+    <div class="roles">
+      <h2>Select Your Role</h2>
+      <div class="role-grid">
+        <a href="manufacturer.html" class="role-btn">
+          <img src="static/img/manufacture.png" class="role-icon" alt="Manufacturer Icon">
+          <span class="role-label">Manufacturer</span>
+        </a>
+        <a href="retailer.html" class="role-btn">
+          <img src="static/img/store.png" class="role-icon" alt="Retailer Icon">
+          <span class="role-label">Retailer</span>
+        </a>
+        <a href="buyer.html" class="role-btn">
+          <img src="static/img/buyer.png" class="role-icon" alt="Buyer Icon">
+          <span class="role-label">Buyer</span>
+        </a>
+        <a href="reseller.html" class="role-btn">
+          <img src="static/img/reseller.png" class="role-icon" alt="Reseller Icon">
+          <span class="role-label">Reseller</span>
+        </a>
+      </div>
+
+      <div class="admin-link">
+        <a href="admin.html">Admin Role Manager</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script>
+  const walletText = document.getElementById('walletText');
+  const roleText = document.getElementById('roleText');
+
+  const ROLE_CONTRACT_ADDRESS = "0xc2e4f723dc8ef3b2809127c10e2649459530aa8c";
+  const ROLE_ABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "role",
+          "type": "string"
+        }
+      ],
+      "name": "RoleAssigned",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "admin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMyRole",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getRole",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "roles",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "role",
+          "type": "string"
+        }
+      ],
+      "name": "setRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ];
+
+  async function getUserRole(account) {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(ROLE_CONTRACT_ADDRESS, ROLE_ABI, signer);
+    const role = await contract.getRole(account);
+    return role;
+  }
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    if (!window.ethereum) {
+      walletText.textContent = "MetaMask not detected.";
+      return;
+    }
+
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const account = await signer.getAddress();
+      walletText.textContent = `Connected: ${account}`;
+
+      const role = await getUserRole(account);
+      if (role && role.length > 0) {
+        console.log(`Current role: ${role}`);
+        roleText.textContent = `Role: ${role}`;
+      } else {
+        roleText.textContent = "No role assigned.";
+      }
+
+    } catch (err) {
+      console.error("Error retrieving wallet or role:", err);
+      walletText.textContent = "Error loading wallet.";
+    }
+  });
+</script>
+</body>
+</html>
