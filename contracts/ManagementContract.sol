@@ -28,9 +28,15 @@ contract ManagementContract {
     mapping(uint256 => address) public assignedRetailer;
 
     event WatchAssigned(uint256 indexed watchId, address indexed toRetailer);
+    event WatchTransferred(uint256 indexed watchId, address indexed from, address indexed to);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can assign");
+        _;
+    }
+
+    modifier onlyOwner(uint256 watchId) {
+        require(watchToOwner[watchId] == msg.sender, "Not current owner");
         _;
     }
 
@@ -44,7 +50,6 @@ contract ManagementContract {
 
         IRegistrationContract reg = IRegistrationContract(registrationContract);
 
-        // Validate watch exists
         (, , , , , address issuedTo) = reg.getWatchDetails(watchId);
         require(issuedTo != address(0), "Watch does not exist");
 
@@ -52,6 +57,15 @@ contract ManagementContract {
         watchToOwner[watchId] = retailer;
 
         emit WatchAssigned(watchId, retailer);
+    }
+
+    function transferToBuyer(uint256 watchId, address buyer) external onlyOwner(watchId) {
+        require(buyer != address(0), "Invalid buyer address");
+
+        address previousOwner = watchToOwner[watchId];
+        watchToOwner[watchId] = buyer;
+
+        emit WatchTransferred(watchId, previousOwner, buyer);
     }
 
     function getAssignedRetailer(uint256 watchId) external view returns (address) {
