@@ -66,8 +66,7 @@
     const watchDropdown = document.getElementById("watchDropdown");
     const assignDropdown = document.getElementById("assignDropdown");
 
-    const REG_CONTRACT_ADDRESS = "0xf5bfae047c34234008399877968e618bb2c89c62";
-    const ROLECONTRACT_ADDRESS = "0xc2e4f723dc8ef3b2809127c10e2649459530aa8c";
+    const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
     const MANAGEMENT_CONTRACT_ADDRESS = "0x4597014f3a6e4c77499bb72f6abc46234a1ead25";
 
     const REG_ABI = [
@@ -245,115 +244,6 @@
       }
     ];
 
-    const ROLE_ABI = [
-      {
-        "inputs": [],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-      },
-      {
-        "anonymous": false,
-        "inputs": [
-          {
-            "indexed": true,
-            "internalType": "address",
-            "name": "user",
-            "type": "address"
-          },
-          {
-            "indexed": false,
-            "internalType": "string",
-            "name": "role",
-            "type": "string"
-          }
-        ],
-        "name": "RoleAssigned",
-        "type": "event"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "user",
-            "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "role",
-            "type": "string"
-          }
-        ],
-        "name": "setRole",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "admin",
-        "outputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "getMyRole",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "user",
-            "type": "address"
-          }
-        ],
-        "name": "getRole",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "address",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "name": "roles",
-        "outputs": [
-          {
-            "internalType": "string",
-            "name": "",
-            "type": "string"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      }
-    ];
-
     const MANAGEMENT_ABI = [
       {
         "inputs": [
@@ -507,18 +397,6 @@
       }
     ];
 
-    async function verifyRole(expectedRole) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(ROLECONTRACT_ADDRESS, ROLE_ABI, signer);
-      const role = await contract.getMyRole();
-      if (role !== expectedRole) {
-        alert(`Access denied. You are not a ${expectedRole}. Redirecting...`);
-        window.location.href = "index.html";
-      }
-    }
-
     async function loadWatchOptions() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -527,7 +405,7 @@
       watchDropdown.innerHTML = '<option selected disabled>Select watch</option>';
       assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
 
-      for (var i = 1; i <= count; i++) {
+      for (let i = 1; i <= count; i++) {
         const watch = await contract.getWatchDetails(i);
         const option = document.createElement("option");
         option.value = i;
@@ -542,31 +420,27 @@
       const brand = document.getElementById("brand").value;
       const date = document.getElementById("date").value;
       const model = document.getElementById("metadata").value;
-    
       const registerBtn = document.getElementById("registerBtn");
-      registerBtn.disabled = true;
-      registerBtn.textContent = "Processing...";
-    
+
       if (!serial || !brand || !date || !model) {
         alert("Please fill in all fields.");
-        registerBtn.disabled = false;
-        registerBtn.textContent = "Generate Certificate";
         return;
       }
-    
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Processing...";
+
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, signer);
-    
+
         const tx = await contract.registerWatch(model, serial, brand, date);
         await tx.wait();
-    
-        alert("TimeBlock certificate created!");
+        alert("Certificate created!");
         await loadWatchOptions();
       } catch (err) {
-        console.error(err);
-        alert("Failed to register watch: " + (err.data?.message || err.message));
+        alert("Error: " + err.message);
       } finally {
         registerBtn.disabled = false;
         registerBtn.textContent = "Generate Certificate";
@@ -575,22 +449,18 @@
 
     async function showCertificate() {
       const selectedId = parseInt(watchDropdown.value);
-    
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
       const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
-    
+
       const watch = await regContract.getWatchDetails(selectedId);
       const currentOwner = await mgmtContract.getCurrentOwner(selectedId);
-    
-      var message = `Certificate for ${watch.model}
-      Serial: ${watch.serialNumber}
-      Manufacturer Address: ${watch.issuedTo}`;
-    
+
+      let message = `Certificate for ${watch.model}\nSerial: ${watch.serialNumber}\nIssued to: ${watch.issuedTo}`;
       if (currentOwner !== ethers.constants.AddressZero) {
         message += `\nCurrent Owner: ${currentOwner}`;
       }
-    
+
       alert(message);
     }
 
@@ -614,48 +484,32 @@
 
         const tx = await contract.assignToRetailer(selectedId, retailer);
         await tx.wait();
-
-        alert(`Watch ${selectedId} successfully assigned to ${retailer}`);
+        alert(`Watch ${selectedId} assigned to ${retailer}`);
       } catch (err) {
-        console.error(err);
-        alert("Failed to assign watch: " + (err.data?.message || err.message));
+        alert("Error: " + err.message);
       } finally {
         assignBtn.disabled = false;
         assignBtn.textContent = "Assign";
       }
     }
 
-
     window.addEventListener("DOMContentLoaded", async () => {
       if (!window.ethereum) {
         walletText.textContent = "MetaMask not found";
         return;
       }
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
       walletText.textContent = `Connected wallet: ${address}`;
+
       await loadWatchOptions();
       document.getElementById("registerBtn").addEventListener("click", registerWatch);
       document.getElementById("mintBtn").addEventListener("click", showCertificate);
       document.getElementById("assignBtn").addEventListener("click", assignToRetailer);
     });
-
-    async function logCurrentRole() {
-      if (!window.ethereum) {
-        console.warn("MetaMask not found");
-        return;
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(ROLECONTRACT_ADDRESS, ROLE_ABI, signer);
-
-      const role = await contract.getMyRole();
-      console.log("Current wallet role:", role);
-    }
   </script>
 </body>
 

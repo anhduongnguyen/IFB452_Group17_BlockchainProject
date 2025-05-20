@@ -11,61 +11,65 @@
 </head>
 
 <body>
-  <main class="container">
+  <main class="container" style="height: auto; align-items: flex-start;">
     <section class="card">
+      
+      <!-- Back Button -->
       <div class="back-button">
         <a href="home.html">← Back</a>
       </div>
-
+  
+      <!-- Wallet Info -->
       <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
-        <span id="walletText">Connected wallet: Loading</span>
+        <span id="walletText">Connected wallet: Loading...</span>
       </div>
-
+  
       <h2 class="app-title" style="margin-top: 2rem;">Reseller</h2>
-
+  
+      <!-- Action Panel -->
       <div class="action-grid">
-        <!-- Certificate Viewer -->
+        <!-- View Certificate -->
         <div class="action-box">
           <h4>View Certificate</h4>
-          <select id="watchDropdown">
+          <select id="viewDropdown">
             <option selected disabled>Select watch</option>
           </select>
-          <button class="primary-btn full-width" id="mintBtn">Show Certificate</button>
+          <button class="primary-btn full-width" id="viewCertBtn">Show Certificate</button>
         </div>
-
-        <!-- Assign to Reseller -->
+  
+        <!-- Sell to Reseller -->
         <div class="action-box">
           <h4>Transfer to Buyer</h4>
-          <input type="text" id="retailerAddress" placeholder="Reseller wallet address">
-          <select id="assignDropdown">
+          <input type="text" id="resellerAddress" placeholder="Reseller wallet address">
+          <select id="sellDropdown">
             <option selected disabled>Select watch</option>
           </select>
-          <button class="primary-btn full-width" id="assignBtn">Transfer</button>
+          <button class="primary-btn full-width" id="sellBtn">Sell</button>
         </div>
-      </div>
-
-      <!-- Make Payment -->
-      <div class="payment-box">
-        <h4>Payment Details</h4>
-        <div class="payment-box-fields">
-          <input type="text" id="paymentAmount" placeholder="Amount (ETH)" class="text-input">
-          <input type="text" id="retailerPayAddress" placeholder="Wallet Address" class="text-input">
-          <button class="primary-btn" id="payBtn">Pay</button>
+  
+        <!-- Make Payment -->
+        <div class="payment-box">
+          <h4>Make Payment</h4>
+          <div class="payment-box-fields">
+            <input type="text" id="paymentAmount" placeholder="Amount (ETH)" class="text-input">
+            <input type="text" id="retailerPayAddress" placeholder="Wallet Address" class="text-input">
+            <button class="primary-btn" id="payBtn">Pay</button>
+          </div>
         </div>
-      </div>
-
-
-      <div class="form-section">
-        <div class="form-header">
-          <h3>Transaction History</h3>
-        </div>
+        
+  
+      <!-- Transaction History -->
+      <div class="full-width-box">
+        <h3>Transaction History</h3>
         <div id="historyBox" class="history-box">
           <p>Transactions will appear here after transfers.</p>
         </div>
       </div>
-
+      </div>
+    </section>
   </main>
+  
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
