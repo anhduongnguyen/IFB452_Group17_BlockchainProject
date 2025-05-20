@@ -51,108 +51,478 @@
           <p>Transactions will appear here after transfers.</p>
         </div>
       </div>
-
+    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
     const walletText = document.getElementById('walletText');
     const assignDropdown = document.getElementById("assignDropdown");
-    const viewDropdown = document.getElementById("viewDropdown");
-    const REG_CONTRACT_ADDRESS = "<REPLACE_WITH_YOUR_REG_CONTRACT_ADDRESS>";
-    const MANAGEMENT_CONTRACT_ADDRESS = "<REPLACE_WITH_YOUR_MANAGEMENT_CONTRACT_ADDRESS>";
-    const REG_ABI = []; // Your registration contract ABI
-    const MGMT_ABI = []; // Your management contract ABI
-
-    const transactionHistory = [];
-
-    async function connectWallet() {
-      if (!window.ethereum) {
-        walletText.textContent = "MetaMask not found";
-        return;
-      }
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      walletText.textContent = `Connected wallet: ${address}`;
+    const viewDropdown = document.getElementById("watchDropdown");
+    const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
+    const MANAGEMENT_CONTRACT_ADDRESS = "0x4a1842586d82e73569385106e83f63ede0853fdc";
+    const REG_ABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "issuedTo",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "model",
+          "type": "string"
+        }
+      ],
+      "name": "WatchRegistered",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getWatchDetails",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "model",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "serialNumber",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "manufacturer",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "productionDate",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "issuedTo",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_model",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_serialNumber",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_manufacturer",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_productionDate",
+          "type": "string"
+        }
+      ],
+      "name": "registerWatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "watchCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "watches",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "model",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "serialNumber",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "manufacturer",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "productionDate",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "issuedTo",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     }
+  ];
 
-    async function loadWatchOptions() {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-      const count = await contract.watchCount();
-      assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
-      viewDropdown.innerHTML = '<option selected disabled>Select watch</option>';
-      for (let i = 1; i <= count; i++) {
-        const watch = await contract.getWatchDetails(i);
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = `${watch.model} (${watch.serialNumber})`;
-        assignDropdown.appendChild(option.cloneNode(true));
-        viewDropdown.appendChild(option);
-      }
+  const MANAGEMENT_ABI = [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_registrationContract",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "toRetailer",
+          "type": "address"
+        }
+      ],
+      "name": "WatchAssigned",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "WatchTransferred",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "admin",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "retailer",
+          "type": "address"
+        }
+      ],
+      "name": "assignToRetailer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "assignedRetailer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAssignedRetailer",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCurrentOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "registrationContract",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        }
+      ],
+      "name": "transferToBuyer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "watchToOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     }
+  ];
 
-    async function transferToBuyer() {
-      const buyer = document.getElementById("buyerAddress").value;
-      const selectedId = parseInt(assignDropdown.value);
-      if (!buyer || isNaN(selectedId)) {
-        alert("Please enter buyer address and select a watch.");
-        return;
-      }
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MGMT_ABI, signer);
-      try {
-        const tx = await contract.transferToBuyer(selectedId, buyer);
-        await tx.wait();
-        alert(`Transferred watch ${selectedId} to ${buyer}`);
-        transactionHistory.push(`Watch ${selectedId} → ${buyer}`);
-        updateHistory();
-      } catch (err) {
-        console.error(err);
-        alert("Transfer failed: " + (err.data?.message || err.message));
-      }
+  const transactionHistory = [];
+
+  async function connectWallet() {
+    if (!window.ethereum) {
+      walletText.textContent = "MetaMask not found";
+      return;
     }
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const address = await signer.getAddress();
+    walletText.textContent = `Connected wallet: ${address}`;
+  }
 
-    async function showCertificate() {
-      const selectedId = parseInt(watchDropdown.value);
-    
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-      const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
-    
-      const watch = await regContract.getWatchDetails(selectedId);
-      const currentOwner = await mgmtContract.getCurrentOwner(selectedId);
-    
-      var message = `Certificate for ${watch.model}
-      Serial: ${watch.serialNumber}
-      Manufacturer Address: ${watch.issuedTo}`;
-    
-      if (currentOwner !== ethers.constants.AddressZero) {
-        message += `\nCurrent Owner: ${currentOwner}`;
-      }
-    
-      alert(message);
+  async function loadWatchOptions() {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const myAddress = await signer.getAddress();
+
+    const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+    const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+
+    const count = await regContract.watchCount();
+    assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+    watchDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+
+    for (let i = 1; i <= count; i++) {
+      const currentOwner = await mgmtContract.getCurrentOwner(i);
+      if (currentOwner.toLowerCase() !== myAddress.toLowerCase()) continue;
+
+      const watch = await regContract.getWatchDetails(i);
+      const label = `${watch.model} (${watch.serialNumber})`;
+
+      const option1 = new Option(label, i);
+      const option2 = new Option(label, i);
+
+      assignDropdown.appendChild(option1);
+      watchDropdown.appendChild(option2);
     }
+  }
 
-    function updateHistory() {
-      const box = document.getElementById("historyBox");
-      box.innerHTML = transactionHistory.length === 0
-        ? '<p>Transactions will appear here after transfers.</p>'
-        : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
+  async function transferToBuyer() {
+    const buyer = document.getElementById("buyerAddress").value;
+    const selectedId = parseInt(assignDropdown.value);
+    if (!buyer || isNaN(selectedId)) {
+      alert("Please enter buyer address and select a watch.");
+      return;
     }
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, signer);
+    try {
+      const tx = await contract.transferToBuyer(selectedId, buyer);
+      await tx.wait();
+      alert(`Transferred watch ${selectedId} to ${buyer}`);
+      transactionHistory.push((`Watch ${selectedId} assigned to ${buyer}`));
+      updateHistory();
+    } catch (err) {
+      console.error(err);
+      alert("Transfer failed: " + (err.data?.message || err.message));
+    }
+  }
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      await connectWallet();
-      await loadWatchOptions();
-      document.getElementById("assignBtn").addEventListener("click", transferToBuyer);
-      document.getElementById("viewBtn").addEventListener("click", showCertificate);
-      document.querySelector(".close").addEventListener("click", () => {
-        document.getElementById("certModal").style.display = "none";
-      });
-    });
-  </script>
+  async function showCertificate() {
+    const selectedId = parseInt(watchDropdown.value);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+    const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+    const watch = await regContract.getWatchDetails(selectedId);
+    const currentOwner = await mgmtContract.getCurrentOwner(selectedId);
+
+    let message = `Certificate for ${watch.model}\nSerial: ${watch.serialNumber}\nManufacturer Address: ${watch.issuedTo}`;
+    if (currentOwner !== ethers.constants.AddressZero) {
+      message += `\nCurrent Owner: ${currentOwner}`;
+    }
+    alert(message);
+  }
+
+  function updateHistory() {
+    const box = document.getElementById("historyBox");
+    box.innerHTML = transactionHistory.length === 0
+      ? '<p>Transactions will appear here after transfers.</p>'
+      : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
+  }
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    await connectWallet();
+    await loadWatchOptions();
+    document.getElementById("assignBtn").addEventListener("click", transferToBuyer);
+    document.getElementById("mintBtn").addEventListener("click", showCertificate);
+  });
+</script>
 </body>
 </html>
