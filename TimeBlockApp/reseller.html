@@ -19,7 +19,6 @@
         <a href="home.html">← Back</a>
       </div>
   
-      <!-- Wallet Info -->
       <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
         <span id="walletText">Connected wallet: Loading...</span>
@@ -72,14 +71,15 @@
   
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <script>
+  <script type="module">
+
+    import {REG_ABI, MANAGEMENT_ABI} from './static/ABI.js';
+
     const walletText = document.getElementById('walletText');
     const assignDropdown = document.getElementById("assignDropdown");
     const viewDropdown = document.getElementById("viewDropdown");
-    const REG_CONTRACT_ADDRESS = "<REPLACE_WITH_YOUR_REG_CONTRACT_ADDRESS>";
-    const MANAGEMENT_CONTRACT_ADDRESS = "<REPLACE_WITH_YOUR_MANAGEMENT_CONTRACT_ADDRESS>";
-    const REG_ABI = []; // Your registration contract ABI
-    const MGMT_ABI = []; // Your management contract ABI
+    const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
+    const MANAGEMENT_CONTRACT_ADDRESS = "0x4a1842586d82e73569385106e83f63ede0853fdc";
 
     const transactionHistory = [];
 
