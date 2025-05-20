@@ -4,104 +4,184 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TimeBlock | Buyer</title>
+  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
   <link rel="stylesheet" href="static/style.css">
-  <link rel="stylesheet" href="static/buyer.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main class="container">
+  <main class="container" style="height: auto; align-items: flex-start;">
     <section class="card">
-     
+      
+      <!-- Back Button -->
       <div class="back-button">
         <a href="home.html">← Back</a>
       </div>
-
- 
+  
+      <!-- Wallet Info -->
       <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
-        <span id="walletText">Connected wallet: 0x1234…abcd</span>
+        <span id="walletText">Connected wallet: Loading...</span>
       </div>
-
-      <h2 class="section-title">Buyer</h2>
-
-      <div class="dashboard-panel">
-        <!-- View Your Watches -->
-        <div class="panel-section">
-          <h3>View Your Watches</h3>
-          <select id="viewDropdown" class="select-input">
-            <option disabled selected>Select watch</option>
+  
+      <h2 class="app-title" style="margin-top: 2rem;">Buyer</h2>
+  
+      <!-- Action Panel -->
+      <div class="action-grid">
+        <!-- View Certificate -->
+        <div class="action-box">
+          <h4>View Certificate</h4>
+          <select id="viewDropdown">
+            <option selected disabled>Select watch</option>
           </select>
-          <button id="viewCertBtn" class="primary-btn">Show Certificate</button>
+          <button class="primary-btn full-width" id="viewCertBtn">Show Certificate</button>
         </div>
-
+  
         <!-- Sell to Reseller -->
-        <div class="panel-section">
-          <h3>Sell to Reseller</h3>
-          <input type="text" id="resellerAddress" class="text-input" placeholder="Enter reseller wallet address" />
-          <select id="sellDropdown" class="select-input">
-            <option disabled selected>Select watch</option>
+        <div class="action-box">
+          <h4>Sell to Reseller</h4>
+          <input type="text" id="resellerAddress" placeholder="Reseller wallet address">
+          <select id="sellDropdown">
+            <option selected disabled>Select watch</option>
           </select>
-          <button id="sellBtn" class="primary-btn">Sell</button>
+          <button class="primary-btn full-width" id="sellBtn">Sell</button>
+        </div>
+  
+        <!-- Make Payment -->
+        <div class="payment-box">
+          <h4>Make Payment to Retailer</h4>
+          <div class="payment-box-fields">
+            <input type="text" id="paymentAmount" placeholder="Amount (ETH)" class="text-input">
+            <input type="text" id="retailerPayAddress" placeholder="Retailer wallet address" class="text-input">
+            <button class="primary-btn" id="payBtn">Pay</button>
+          </div>
+        </div>
+        
+  
+      <!-- Transaction History -->
+      <div class="full-width-box">
+        <h3>Transaction History</h3>
+        <div id="historyBox" class="history-box">
+          <p>Transactions will appear here after transfers.</p>
         </div>
       </div>
-
-    
-      <div id="certModal" class="modal-overlay">
-        <div class="modal">
-          <button class="close-btn">×</button>
-          <h3>Certificate of Authenticity</h3>
-          <p><strong>Model:</strong> <span id="certModel"></span></p>
-          <p><strong>Serial:</strong> <span id="certSerial"></span></p>
-          <p><strong>Manufacturer:</strong> <span id="certManufacturer"></span></p>
-          <p><strong>Retailer:</strong> <span id="certRetailer"></span></p>
-        </div>
       </div>
     </section>
   </main>
 
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Mock data
-      const watches = [
-        { id: 1, model: 'Model A', serial: 'SN1001', manufacturer: '0xManuf1', retailer: '0xRetailer1' },
-        { id: 2, model: 'Model B', serial: 'SN1002', manufacturer: '0xManuf2', retailer: '' }
-      ];
+    const walletText = document.getElementById('walletText');
+    const viewDropdown = document.getElementById("viewDropdown");
+    const sellDropdown = document.getElementById("sellDropdown");
 
-      const viewDD = document.getElementById('viewDropdown');
-      const sellDD = document.getElementById('sellDropdown');
+    const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
+    const MANAGEMENT_CONTRACT_ADDRESS = "0x4597014f3a6e4c77499bb72f6abc46234a1ead25";
 
-      // Populate both dropdowns
-      watches.forEach(w => {
-        const opt1 = document.createElement('option');
-        opt1.value = w.id;
-        opt1.textContent = `${w.model} (${w.serial})`;
-        viewDD.appendChild(opt1);
+    const REG_ABI = [/* Your full REG_ABI from manufacturer.html */];
+    const MANAGEMENT_ABI = [/* Your full MANAGEMENT_ABI from manufacturer.html */];
 
-        const opt2 = opt1.cloneNode(true);
-        sellDD.appendChild(opt2);
-      });
+    async function loadBuyerWatches(currentAddress) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
 
-   
-      document.getElementById('viewCertBtn').addEventListener('click', () => {
-        const id = +viewDD.value;
-        if (!id) return alert('Please select a watch');
-        const w = watches.find(x => x.id === id);
-        document.getElementById('certModel').textContent = w.model;
-        document.getElementById('certSerial').textContent = w.serial;
-        document.getElementById('certManufacturer').textContent = w.manufacturer;
-        document.getElementById('certRetailer').textContent = w.retailer || 'N/A';
-        document.getElementById('certModal').style.display = 'flex';
-      });
+      const count = await reg.watchCount();
+      viewDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+      sellDropdown.innerHTML = '<option selected disabled>Select watch</option>';
 
-     
-      document.querySelector('#certModal .close-btn')
-        .addEventListener('click', () => document.getElementById('certModal').style.display = 'none');
+      for (let i = 1; i <= count; i++) {
+        const owner = await mgmt.getCurrentOwner(i);
+        if (owner.toLowerCase() === currentAddress.toLowerCase()) {
+          const details = await reg.getWatchDetails(i);
+          const label = `${details.model} (${details.serialNumber})`;
+          const option = new Option(label, i);
+          viewDropdown.appendChild(option.cloneNode(true));
+          sellDropdown.appendChild(option);
+        }
+      }
+    }
 
-      document.getElementById('sellBtn').addEventListener('click', () => {
-        const id = +sellDD.value;
-        const addr = document.getElementById('resellerAddress').value.trim();
-        if (!id || !addr) return alert('Please select a watch and enter a reseller address');
-        alert(`Sold watch ${id} to ${addr}`);
-      });
+    async function showCertificate() {
+      const id = parseInt(viewDropdown.value);
+      if (isNaN(id)) return alert("Select a watch first.");
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+
+      const w = await reg.getWatchDetails(id);
+      const current = await mgmt.getCurrentOwner(id);
+
+      let message = `Certificate for ${w.model}\nSerial: ${w.serialNumber}\nManufacturer: ${w.issuedTo}`;
+      if (current !== ethers.constants.AddressZero) {
+        message += `\nCurrent Owner: ${current}`;
+      }
+      alert(message);
+    }
+
+    async function sellToReseller() {
+      const id = parseInt(document.getElementById("sellDropdown").value);
+      const reseller = document.getElementById("resellerAddress").value.trim();
+      if (!reseller || isNaN(id)) return alert("Please enter address and select a watch.");
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, signer);
+
+      try {
+        const tx = await contract.transferWatch(id, reseller);
+        await tx.wait();
+        alert(`Watch ${id} sold to ${reseller}`);
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+
+    async function makePayment() {
+      const amount = document.getElementById("paymentAmount").value.trim();
+      const to = document.getElementById("retailerPayAddress").value.trim();
+      if (!amount || !to) return alert("Fill in all payment fields");
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      try {
+        const tx = await signer.sendTransaction({
+          to: to,
+          value: ethers.utils.parseEther(amount)
+        });
+        await tx.wait();
+        alert("Payment successful");
+      } catch (err) {
+        alert("Payment failed: " + err.message);
+      }
+    }
+
+    async function loadTransactionHistory(currentAddress) {
+      const list = document.getElementById("transactionList");
+      list.innerHTML = "<p>Coming soon: transaction fetch from contract logs.</p>";
+      // Optional: implement event filtering logic here
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      if (!window.ethereum) {
+        walletText.textContent = "MetaMask not found";
+        return;
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      walletText.textContent = `Connected wallet: ${address}`;
+
+      await loadBuyerWatches(address);
+      await loadTransactionHistory(address);
+
+      document.getElementById("viewCertBtn").addEventListener("click", showCertificate);
+      document.getElementById("sellBtn").addEventListener("click", sellToReseller);
+      document.getElementById("payBtn").addEventListener("click", makePayment);
     });
   </script>
 </body>

@@ -4,130 +4,156 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TimeBlock | Retailer</title>
+  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
   <link rel="stylesheet" href="static/style.css">
-  <link rel="stylesheet" href="static/retailer.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <main class="container">
     <section class="card">
-      <!-- Back -->
       <div class="back-button">
         <a href="home.html">← Back</a>
       </div>
 
-      <!-- Wallet Info -->
-     <div id="walletAddress" class="wallet-address">
+      <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
         <span id="walletText">Connected wallet: Loading</span>
       </div>
 
-      <h2 class="section-title">Retailer</h2>
+      <h2 class="app-title" style="margin-top: 2rem;">Retailer</h2>
 
-      <!-- Panels -->
-      <div class="dashboard-panel">
-        <!-- View Certificate -->
-        <div class="panel-section">
-          <h3>View Certificate</h3>
-          <select id="viewDropdown" class="select-input">
-            <option disabled selected>Select watch</option>
+      <div class="action-grid">
+        <!-- Certificate Viewer -->
+        <div class="action-box">
+          <h4>View Certificate</h4>
+          <select id="watchDropdown">
+            <option selected disabled>Select watch</option>
           </select>
-          <button id="viewCertBtn" class="primary-btn">Show Certificate</button>
+          <button class="primary-btn full-width" id="mintBtn">Show Certificate</button>
         </div>
 
         <!-- Assign to Retailer -->
-        <div class="panel-section">
-          <h3>Assign to Buyer</h3>
-          <input type="text" id="retailerAddress" class="text-input" placeholder="Retailer wallet address" />
-          <select id="assignDropdown" class="select-input">
-            <option disabled selected>Select watch</option>
+        <div class="action-box">
+          <h4>Transfer to Buyer</h4>
+          <input type="text" id="retailerAddress" placeholder="Retailer wallet address">
+          <select id="assignDropdown">
+            <option selected disabled>Select watch</option>
           </select>
-          <button id="assignBtn" class="primary-btn">Assign</button>
+          <button class="primary-btn full-width" id="assignBtn">Transfer</button>
+        </div>
+      </div>
+    
+
+      <div class="form-section">
+        <div class="form-header">
+          <h3>Transaction History</h3>
+        </div>
+        <div id="historyBox" class="history-box">
+          <p>Transactions will appear here after transfers.</p>
         </div>
       </div>
 
-      <!-- Certificate Modal -->
-      <div id="certModal" class="modal">
-        <div class="modal-content">
-          <span class="close">×</span>
-          <pre id="certDetails"></pre>
-        </div>
-      </div>
-    </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      connectWallet();
-      populateViewList();
-      populateAssignList();
-      document.getElementById('viewCertBtn').addEventListener('click', showCertificate);
-      document.getElementById('assignBtn').addEventListener('click', assignToRetailer);
-      document.querySelector('.close').addEventListener('click', () => toggleModal(false));
+    const walletText = document.getElementById('walletText');
+    const assignDropdown = document.getElementById("assignDropdown");
+    const viewDropdown = document.getElementById("viewDropdown");
+    const REG_CONTRACT_ADDRESS = "<REPLACE_WITH_YOUR_REG_CONTRACT_ADDRESS>";
+    const MANAGEMENT_CONTRACT_ADDRESS = "<REPLACE_WITH_YOUR_MANAGEMENT_CONTRACT_ADDRESS>";
+    const REG_ABI = []; // Your registration contract ABI
+    const MGMT_ABI = []; // Your management contract ABI
+
+    const transactionHistory = [];
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        walletText.textContent = "MetaMask not found";
+        return;
+      }
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      walletText.textContent = `Connected wallet: ${address}`;
+    }
+
+    async function loadWatchOptions() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const count = await contract.watchCount();
+      assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+      viewDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+      for (let i = 1; i <= count; i++) {
+        const watch = await contract.getWatchDetails(i);
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = `${watch.model} (${watch.serialNumber})`;
+        assignDropdown.appendChild(option.cloneNode(true));
+        viewDropdown.appendChild(option);
+      }
+    }
+
+    async function transferToBuyer() {
+      const buyer = document.getElementById("buyerAddress").value;
+      const selectedId = parseInt(assignDropdown.value);
+      if (!buyer || isNaN(selectedId)) {
+        alert("Please enter buyer address and select a watch.");
+        return;
+      }
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MGMT_ABI, signer);
+      try {
+        const tx = await contract.transferToBuyer(selectedId, buyer);
+        await tx.wait();
+        alert(`Transferred watch ${selectedId} to ${buyer}`);
+        transactionHistory.push(`Watch ${selectedId} → ${buyer}`);
+        updateHistory();
+      } catch (err) {
+        console.error(err);
+        alert("Transfer failed: " + (err.data?.message || err.message));
+      }
+    }
+
+    async function showCertificate() {
+      const selectedId = parseInt(watchDropdown.value);
+    
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+    
+      const watch = await regContract.getWatchDetails(selectedId);
+      const currentOwner = await mgmtContract.getCurrentOwner(selectedId);
+    
+      var message = `Certificate for ${watch.model}
+      Serial: ${watch.serialNumber}
+      Manufacturer Address: ${watch.issuedTo}`;
+    
+      if (currentOwner !== ethers.constants.AddressZero) {
+        message += `\nCurrent Owner: ${currentOwner}`;
+      }
+    
+      alert(message);
+    }
+
+    function updateHistory() {
+      const box = document.getElementById("historyBox");
+      box.innerHTML = transactionHistory.length === 0
+        ? '<p>Transactions will appear here after transfers.</p>'
+        : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      await connectWallet();
+      await loadWatchOptions();
+      document.getElementById("assignBtn").addEventListener("click", transferToBuyer);
+      document.getElementById("viewBtn").addEventListener("click", showCertificate);
+      document.querySelector(".close").addEventListener("click", () => {
+        document.getElementById("certModal").style.display = "none";
+      });
     });
-
-    function connectWallet() {
-      // Placeholder: integrate real wallet connection
-      const mock = '0x1234...abcd';
-      document.getElementById('walletText').textContent = `Connected wallet: ${mock}`;
-    }
-
-    function populateViewList() {
-      const dd = document.getElementById('viewDropdown');
-      // TODO: replace mock data with blockchain fetch
-      const watches = [ {id:1,label:'Model A (SN1001)'}, {id:2,label:'Model B (SN1002)'} ];
-      watches.forEach(w => {
-        const opt = document.createElement('option');
-        opt.value = w.id;
-        opt.textContent = w.label;
-        dd.appendChild(opt);
-      });
-    }
-
-    function populateAssignList() {
-      const dd = document.getElementById('assignDropdown');
-      // TODO: replace mock data with blockchain fetch
-      const watches = [ {id:1,label:'Model A (SN1001)'}, {id:2,label:'Model B (SN1002)'} ];
-      watches.forEach(w => {
-        const opt = document.createElement('option');
-        opt.value = w.id;
-        opt.textContent = w.label;
-        dd.appendChild(opt);
-      });
-    }
-
-    function showCertificate() {
-      const id = document.getElementById('viewDropdown').value;
-      if (!id) return alert('Please select a watch to view its certificate.');
-      // TODO: fetch real certificate details
-      const details = {
-        model: 'Model A',
-        serial: 'SN1001',
-        issuedTo: '0xManuf1',
-        currentOwner: '0x1234...abcd',
-        valid: true,
-        ownedByYou: true
-      };
-      const text = `Model: ${details.model}\n` +
-                   `Serial: ${details.serial}\n` +
-                   `Issued To: ${details.issuedTo}\n` +
-                   `Current Owner: ${details.currentOwner}\n` +
-                   `Valid Certificate: ${details.valid ? 'Yes' : 'No'}\n` +
-                   `Owned by you: ${details.ownedByYou ? 'Yes' : 'No'}`;
-      document.getElementById('certDetails').textContent = text;
-      toggleModal(true);
-    }
-
-    function assignToRetailer() {
-      const addr = document.getElementById('retailerAddress').value;
-      const id = document.getElementById('assignDropdown').value;
-      if (!addr || !id) return alert('Please enter the retailer address and select a watch.');
-      // TODO: call smart contract to assign watch
-      alert(`Assigned watch ${id} to ${addr}`);
-    }
-
-    function toggleModal(show) {
-      document.getElementById('certModal').style.display = show ? 'flex' : 'none';
-    }
   </script>
 </body>
 </html>
