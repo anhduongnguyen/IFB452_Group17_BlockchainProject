@@ -4,11 +4,105 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TimeBlock | Buyer</title>
-  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
-  <link rel="stylesheet" href="static/style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="static/buyer.css">
 </head>
 <body>
- <h1> test <h1>
+  <main class="container">
+    <section class="card">
+     
+      <div class="back-button">
+        <a href="home.html">← Back</a>
+      </div>
+
+ 
+      <div id="walletAddress" class="wallet-address">
+        <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
+        <span id="walletText">Connected wallet: 0x1234…abcd</span>
+      </div>
+
+      <h2 class="section-title">Buyer</h2>
+
+      <div class="dashboard-panel">
+        <!-- View Your Watches -->
+        <div class="panel-section">
+          <h3>View Your Watches</h3>
+          <select id="viewDropdown" class="select-input">
+            <option disabled selected>Select watch</option>
+          </select>
+          <button id="viewCertBtn" class="primary-btn">Show Certificate</button>
+        </div>
+
+        <!-- Sell to Reseller -->
+        <div class="panel-section">
+          <h3>Sell to Reseller</h3>
+          <input type="text" id="resellerAddress" class="text-input" placeholder="Enter reseller wallet address" />
+          <select id="sellDropdown" class="select-input">
+            <option disabled selected>Select watch</option>
+          </select>
+          <button id="sellBtn" class="primary-btn">Sell</button>
+        </div>
+      </div>
+
+    
+      <div id="certModal" class="modal-overlay">
+        <div class="modal">
+          <button class="close-btn">×</button>
+          <h3>Certificate of Authenticity</h3>
+          <p><strong>Model:</strong> <span id="certModel"></span></p>
+          <p><strong>Serial:</strong> <span id="certSerial"></span></p>
+          <p><strong>Manufacturer:</strong> <span id="certManufacturer"></span></p>
+          <p><strong>Retailer:</strong> <span id="certRetailer"></span></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mock data
+      const watches = [
+        { id: 1, model: 'Model A', serial: 'SN1001', manufacturer: '0xManuf1', retailer: '0xRetailer1' },
+        { id: 2, model: 'Model B', serial: 'SN1002', manufacturer: '0xManuf2', retailer: '' }
+      ];
+
+      const viewDD = document.getElementById('viewDropdown');
+      const sellDD = document.getElementById('sellDropdown');
+
+      // Populate both dropdowns
+      watches.forEach(w => {
+        const opt1 = document.createElement('option');
+        opt1.value = w.id;
+        opt1.textContent = `${w.model} (${w.serial})`;
+        viewDD.appendChild(opt1);
+
+        const opt2 = opt1.cloneNode(true);
+        sellDD.appendChild(opt2);
+      });
+
+   
+      document.getElementById('viewCertBtn').addEventListener('click', () => {
+        const id = +viewDD.value;
+        if (!id) return alert('Please select a watch');
+        const w = watches.find(x => x.id === id);
+        document.getElementById('certModel').textContent = w.model;
+        document.getElementById('certSerial').textContent = w.serial;
+        document.getElementById('certManufacturer').textContent = w.manufacturer;
+        document.getElementById('certRetailer').textContent = w.retailer || 'N/A';
+        document.getElementById('certModal').style.display = 'flex';
+      });
+
+     
+      document.querySelector('#certModal .close-btn')
+        .addEventListener('click', () => document.getElementById('certModal').style.display = 'none');
+
+      document.getElementById('sellBtn').addEventListener('click', () => {
+        const id = +sellDD.value;
+        const addr = document.getElementById('resellerAddress').value.trim();
+        if (!id || !addr) return alert('Please select a watch and enter a reseller address');
+        alert(`Sold watch ${id} to ${addr}`);
+      });
+    });
+  </script>
 </body>
 </html>
