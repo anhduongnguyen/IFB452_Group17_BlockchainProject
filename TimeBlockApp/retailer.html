@@ -4,11 +4,130 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TimeBlock | Retailer</title>
-  <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
-  <link rel="stylesheet" href="static/style.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="static/retailer.css">
 </head>
 <body>
- <h1> test <h1>
+  <main class="container">
+    <section class="card">
+      <!-- Back -->
+      <div class="back-button">
+        <a href="home.html">← Back</a>
+      </div>
+
+      <!-- Wallet Info -->
+     <div id="walletAddress" class="wallet-address">
+        <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
+        <span id="walletText">Connected wallet: Loading</span>
+      </div>
+
+      <h2 class="section-title">Retailer Dashboard</h2>
+
+      <!-- Panels -->
+      <div class="dashboard-panel">
+        <!-- View Certificate -->
+        <div class="panel-section">
+          <h3>View Certificate</h3>
+          <select id="viewDropdown" class="select-input">
+            <option disabled selected>Select watch</option>
+          </select>
+          <button id="viewCertBtn" class="primary-btn">Show Certificate</button>
+        </div>
+
+        <!-- Assign to Retailer -->
+        <div class="panel-section">
+          <h3>Assign to Retailer</h3>
+          <input type="text" id="retailerAddress" class="text-input" placeholder="Retailer wallet address" />
+          <select id="assignDropdown" class="select-input">
+            <option disabled selected>Select watch</option>
+          </select>
+          <button id="assignBtn" class="primary-btn">Assign</button>
+        </div>
+      </div>
+
+      <!-- Certificate Modal -->
+      <div id="certModal" class="modal">
+        <div class="modal-content">
+          <span class="close">×</span>
+          <pre id="certDetails"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      connectWallet();
+      populateViewList();
+      populateAssignList();
+      document.getElementById('viewCertBtn').addEventListener('click', showCertificate);
+      document.getElementById('assignBtn').addEventListener('click', assignToRetailer);
+      document.querySelector('.close').addEventListener('click', () => toggleModal(false));
+    });
+
+    function connectWallet() {
+      // Placeholder: integrate real wallet connection
+      const mock = '0x1234...abcd';
+      document.getElementById('walletText').textContent = `Connected wallet: ${mock}`;
+    }
+
+    function populateViewList() {
+      const dd = document.getElementById('viewDropdown');
+      // TODO: replace mock data with blockchain fetch
+      const watches = [ {id:1,label:'Model A (SN1001)'}, {id:2,label:'Model B (SN1002)'} ];
+      watches.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.label;
+        dd.appendChild(opt);
+      });
+    }
+
+    function populateAssignList() {
+      const dd = document.getElementById('assignDropdown');
+      // TODO: replace mock data with blockchain fetch
+      const watches = [ {id:1,label:'Model A (SN1001)'}, {id:2,label:'Model B (SN1002)'} ];
+      watches.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.label;
+        dd.appendChild(opt);
+      });
+    }
+
+    function showCertificate() {
+      const id = document.getElementById('viewDropdown').value;
+      if (!id) return alert('Please select a watch to view its certificate.');
+      // TODO: fetch real certificate details
+      const details = {
+        model: 'Model A',
+        serial: 'SN1001',
+        issuedTo: '0xManuf1',
+        currentOwner: '0x1234...abcd',
+        valid: true,
+        ownedByYou: true
+      };
+      const text = `Model: ${details.model}\n` +
+                   `Serial: ${details.serial}\n` +
+                   `Issued To: ${details.issuedTo}\n` +
+                   `Current Owner: ${details.currentOwner}\n` +
+                   `Valid Certificate: ${details.valid ? 'Yes' : 'No'}\n` +
+                   `Owned by you: ${details.ownedByYou ? 'Yes' : 'No'}`;
+      document.getElementById('certDetails').textContent = text;
+      toggleModal(true);
+    }
+
+    function assignToRetailer() {
+      const addr = document.getElementById('retailerAddress').value;
+      const id = document.getElementById('assignDropdown').value;
+      if (!addr || !id) return alert('Please enter the retailer address and select a watch.');
+      // TODO: call smart contract to assign watch
+      alert(`Assigned watch ${id} to ${addr}`);
+    }
+
+    function toggleModal(show) {
+      document.getElementById('certModal').style.display = show ? 'flex' : 'none';
+    }
+  </script>
 </body>
 </html>
