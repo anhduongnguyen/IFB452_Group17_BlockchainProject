@@ -12,6 +12,12 @@ contract TransactionContract {
     enum Status { AwaitingDeposit, AwaitingConfirmation, Completed, Refunded }
     Status public status;
 
+    mapping(uint256 => uint256) public watchPrices;
+
+    event PaymentDeposited(address indexed buyer, uint256 amount);
+    event FundsReleased(address indexed seller, uint256 amount);
+    event BuyerRefunded(address indexed buyer, uint256 amount);
+
     constructor(address _seller) {
         seller = _seller;
         status = Status.AwaitingDeposit;
@@ -26,6 +32,8 @@ contract TransactionContract {
         amount = msg.value;
         fundsDeposited = true;
         status = Status.AwaitingConfirmation;
+
+        emit PaymentDeposited(buyer, amount);
     }
 
     // Release funds to seller when certificate is confirmed valid
@@ -37,6 +45,8 @@ contract TransactionContract {
         fundsReleased = true;
         status = Status.Completed;
         payable(seller).transfer(amount);
+
+        emit FundsReleased(seller, amount);
     }
 
     // Refund the buyer if details are invalid
@@ -48,10 +58,22 @@ contract TransactionContract {
         refunded = true;
         status = Status.Refunded;
         payable(buyer).transfer(amount);
+
+        emit BuyerRefunded(buyer, amount);
     }
 
     // Utility function to get contract balance
     function getBalance() external view returns (uint256) {
         return address(this).balance;
+    }
+
+    // Set price for a watch (by retailer)
+    function setPrice(uint256 watchId, uint256 priceInWei) external {
+        watchPrices[watchId] = priceInWei;
+    }
+
+    // Get price for a specific watch
+    function getPrice(uint256 watchId) external view returns (uint256) {
+        return watchPrices[watchId];
     }
 }
