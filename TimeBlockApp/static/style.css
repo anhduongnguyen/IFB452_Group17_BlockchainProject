@@ -20,7 +20,7 @@ body {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   padding: 3rem 2.5rem;
   text-align: center;
-  width: 100%;
+  width: 150%;
   max-width: 700px;
 }
 
@@ -436,4 +436,8 @@ body {
 
 .history-box ul {
   text-align: left;
+}
+
+.history-box ul li {
+  margin-bottom: 0.625rem; 
 }
