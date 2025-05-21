@@ -433,3 +433,7 @@ body {
   box-sizing: border-box;
   font-size: 1rem;
 }
+
+.history-box ul {
+  text-align: left;
+}

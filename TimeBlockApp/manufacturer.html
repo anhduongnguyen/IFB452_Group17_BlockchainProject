@@ -63,6 +63,8 @@
       <div class="form-section">
         <div class="form-header">
           <h3>Transaction History</h3>
+          <button class="secondary-btn" id="clearHistoryBtn" style="margin-top: 1rem;">Clear History</button>
+
         </div>
         <div id="historyBox" class="history-box">
           <p>Transactions will appear here after transfers.</p>
@@ -89,6 +91,7 @@
   const transactionHistory = [];
 
   function updateHistory() {
+    localStorage.setItem('manufacturerHistory', JSON.stringify(transactionHistory));
     const box = document.getElementById("historyBox");
     box.innerHTML = transactionHistory.length === 0
       ? '<p>Transactions will appear here after transfers.</p>'
@@ -97,19 +100,26 @@
   
   async function loadWatchOptions() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-    const count = await contract.watchCount();
-
+    const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+    const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+  
+    const count = await regContract.watchCount();
+  
     watchDropdown.innerHTML = '<option selected disabled>Select watch</option>';
     assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
-
+  
     for (let i = 1; i <= count; i++) {
-      const watch = await contract.getWatchDetails(i);
-      const option = document.createElement("option");
-      option.value = i;
-      option.textContent = `${watch.model} (${watch.serialNumber})`;
+      const watch = await regContract.getWatchDetails(i);
+      const owner = await mgmtContract.getCurrentOwner(i);
+  
+      // Display all in certificate viewer
+      const option = new Option(`${watch.model} (${watch.serialNumber})`, i);
       watchDropdown.appendChild(option.cloneNode(true));
-      assignDropdown.appendChild(option);
+  
+      // Only add to assign dropdown if not already assigned
+      if (owner === ethers.constants.AddressZero) {
+        assignDropdown.appendChild(option);
+      }
     }
   }
 
@@ -166,27 +176,43 @@
     const retailer = document.getElementById("retailerAddress").value;
     const selectedId = parseInt(assignDropdown.value);
     const assignBtn = document.getElementById("assignBtn");
-
+  
     if (!retailer || isNaN(selectedId)) {
       alert("Please select a watch and enter a retailer address.");
       return;
     }
-
+  
     assignBtn.disabled = true;
     assignBtn.textContent = "Processing...";
-
+  
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, signer);
-
-      const tx = await contract.assignToRetailer(selectedId, retailer);
+  
+      // Assign watch via management contract
+      const managementContract = new ethers.Contract(
+        MANAGEMENT_CONTRACT_ADDRESS,
+        MANAGEMENT_ABI,
+        signer
+      );
+      const tx = await managementContract.assignToRetailer(selectedId, retailer);
       await tx.wait();
-
-      transactionHistory.push(`Watch ${selectedId} assigned to ${retailer}`);
+  
+      // Get watch details for human-readable log
+      const regContract = new ethers.Contract(
+        REG_CONTRACT_ADDRESS,
+        REG_ABI,
+        provider
+      );
+      const watch = await regContract.getWatchDetails(selectedId);
+      const label = `${watch.model} (${watch.serialNumber})`;
+  
+      // Update history once
+      transactionHistory.push(`${label} assigned to ${retailer}`);
       updateHistory();
+  
       await loadWatchOptions();
-      alert(`Watch ${selectedId} assigned to ${retailer}`);
+      alert(`${label} assigned to ${retailer}`);
     } catch (err) {
       alert("Error: " + err.message);
     } finally {
@@ -194,25 +220,52 @@
       assignBtn.textContent = "Assign";
     }
   }
+  
+  function clearHistory() {
+    transactionHistory.length = 0;
+    localStorage.removeItem('manufacturerHistory');
+    updateHistory();
+  }
+  
+  
 
   window.addEventListener("DOMContentLoaded", async () => {
+    // Check for MetaMask
     if (!window.ethereum) {
       walletText.textContent = "MetaMask not found";
       return;
     }
+  
+    try {
+      // Connect to wallet and display address
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const address = await signer.getAddress();
+      walletText.textContent = `Connected wallet: ${address}`;
+  
+      // Load watch dropdowns
+      await loadWatchOptions();
+  
+      // Restore and display transaction history from localStorage
+      const savedHistory = localStorage.getItem('manufacturerHistory');
+      if (savedHistory) {
+        transactionHistory.push(...JSON.parse(savedHistory));
+        updateHistory();
+      }
+  
+      // Set up button event listeners
+      document.getElementById("registerBtn").addEventListener("click", registerWatch);
+      document.getElementById("mintBtn").addEventListener("click", showCertificate);
+      document.getElementById("assignBtn").addEventListener("click", assignToRetailer);
+      document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const address = await signer.getAddress();
-    walletText.textContent = `Connected wallet: ${address}`;
-
-    await loadWatchOptions();
-    document.getElementById("registerBtn").addEventListener("click", registerWatch);
-    document.getElementById("mintBtn").addEventListener("click", showCertificate);
-    document.getElementById("assignBtn").addEventListener("click", assignToRetailer);
+    } catch (error) {
+      console.error("Error during initialization:", error);
+      walletText.textContent = "Wallet connection failed.";
+    }
   });
-
+  
 </script>
 </body>
 </html>
