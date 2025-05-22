@@ -431,3 +431,7 @@ body {
 .history-box ul li {
   margin-bottom: 0.625rem;
 }
+
+.action-button{
+  margin-bottom: 12px; 
+}
