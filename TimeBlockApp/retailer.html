@@ -14,7 +14,7 @@
       <div class="back-button">
         <a href="home.html">← Back</a>
       </div>
-  
+
       <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
         <span id="walletText">Connected wallet: Loading</span>
@@ -48,18 +48,17 @@
         <div class="form-header">
           <h3>Watches Listed for Sale</h3>
         </div>
-        <div id="historyBox" class="history-box">
-          <p>Watches listed for sale will be displayed here.</p>
-        </div>
+        <ul id="listedWatchesBox" class="history-box">
+          <li>Watches listed for sale will be displayed here.</li>
+        </ul>
       </div>
-
 
       <div class="form-section">
         <div class="form-header">
           <h3>Transaction History</h3>
           <button class="btn btn-secondary" id="clearHistoryBtn">Clear History</button>
         </div>
-        <div id="historyBox" class="history-box">
+        <div id="transactionBox" class="history-box">
           <p>Transactions will appear here after transfers.</p>
         </div>
       </div>
@@ -77,7 +76,7 @@
   
     const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
     const MANAGEMENT_CONTRACT_ADDRESS = "0x4a1842586d82e73569385106e83f63ede0853fdc";
-    const TRANSACTION_CONTRACT_ADDRESS = "0x49e478fc719b1c691280379fb624d622ead813b2";
+    const TRANSACTION_CONTRACT_ADDRESS = "0xa39c8f80fcb497be80720d4824e920caf5eeb4c9";
   
     const transactionHistory = [];
   
@@ -236,16 +235,19 @@
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
       listedWatchesBox.innerHTML = "";
-  
+    
       const count = await reg.watchCount();
       for (let i = 1; i <= count; i++) {
         try {
           const isListed = await txContract.isForSale(i);
           if (!isListed) continue;
-  
+    
           const watch = await reg.getWatchDetails(i);
-          const label = `${watch.model} (${watch.serialNumber})`;
-  
+          const rawPrice = await txContract.getPrice(i);  // 🔥 Get price here
+          const priceEth = ethers.utils.formatEther(rawPrice);  // Convert from wei to ETH
+    
+          const label = `${watch.model} (${watch.serialNumber}) - ${priceEth} ETH`;
+    
           const li = document.createElement("li");
           li.textContent = label;
           listedWatchesBox.appendChild(li);
@@ -253,12 +255,12 @@
           console.warn(`Error loading watch ${i}:`, err);
         }
       }
-  
+    
       if (!listedWatchesBox.hasChildNodes()) {
         listedWatchesBox.innerHTML = "<li>No watches currently listed for sale.</li>";
       }
     }
-  
+    
     async function listenToPayments() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);

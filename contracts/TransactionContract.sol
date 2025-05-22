@@ -13,6 +13,7 @@ contract TransactionContract {
     Status public status;
 
     mapping(uint256 => uint256) public watchPrices;
+    mapping(uint256 => bool) public forSale; // NEW: track if a watch is listed
 
     event PaymentDeposited(address indexed buyer, uint256 amount);
     event FundsReleased(address indexed retailer, uint256 amount);
@@ -69,5 +70,14 @@ contract TransactionContract {
 
     function getPrice(uint256 watchId) external view returns (uint256) {
         return watchPrices[watchId];
+    }
+
+    function listForSale(uint256 watchId) external {
+        require(watchPrices[watchId] > 0, "Set price first");
+        forSale[watchId] = true;
+    }
+
+    function isForSale(uint256 watchId) external view returns (bool) {
+        return forSale[watchId];
     }
 }
