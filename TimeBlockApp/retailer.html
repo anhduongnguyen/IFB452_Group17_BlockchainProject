@@ -243,8 +243,8 @@
           if (!isListed) continue;
     
           const watch = await reg.getWatchDetails(i);
-          const rawPrice = await txContract.getPrice(i);  // 🔥 Get price here
-          const priceEth = ethers.utils.formatEther(rawPrice);  // Convert from wei to ETH
+          const rawPrice = await txContract.getPrice(i);  
+          const priceEth = ethers.utils.formatEther(rawPrice);  
     
           const label = `${watch.model} (${watch.serialNumber}) - ${priceEth} ETH`;
     
