@@ -13,11 +13,12 @@ contract TransactionContract {
     Status public status;
 
     mapping(uint256 => uint256) public watchPrices;
-    mapping(uint256 => bool) public forSale; // NEW: track if a watch is listed
+    mapping(uint256 => bool) public forSale;
 
     event PaymentDeposited(address indexed buyer, uint256 amount);
     event FundsReleased(address indexed retailer, uint256 amount);
     event BuyerRefunded(address indexed buyer, uint256 amount);
+    event WatchListed(uint256 indexed watchId, uint256 priceInWei); // NEW
 
     constructor(address _retailer) {
         retailer = _retailer;
@@ -64,17 +65,18 @@ contract TransactionContract {
         return address(this).balance;
     }
 
-    function setPrice(uint256 watchId, uint256 priceInWei) external {
+    function createListing(uint256 watchId, uint256 priceInWei) external {
+        require(priceInWei > 0, "Price must be greater than 0");
+        require(!forSale[watchId], "Already listed");
+
         watchPrices[watchId] = priceInWei;
+        forSale[watchId] = true;
+
+        emit WatchListed(watchId, priceInWei);
     }
 
     function getPrice(uint256 watchId) external view returns (uint256) {
         return watchPrices[watchId];
-    }
-
-    function listForSale(uint256 watchId) external {
-        require(watchPrices[watchId] > 0, "Set price first");
-        forSale[watchId] = true;
     }
 
     function isForSale(uint256 watchId) external view returns (bool) {

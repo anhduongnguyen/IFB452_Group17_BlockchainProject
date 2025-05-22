@@ -439,6 +439,25 @@ const REG_ABI = [
       "type": "event"
     },
     {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "priceInWei",
+          "type": "uint256"
+        }
+      ],
+      "name": "WatchListed",
+      "type": "event"
+    },
+    {
       "inputs": [],
       "name": "amount",
       "outputs": [
@@ -462,6 +481,24 @@ const REG_ABI = [
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "priceInWei",
+          "type": "uint256"
+        }
+      ],
+      "name": "createListing",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -568,19 +605,6 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "watchId",
-          "type": "uint256"
-        }
-      ],
-      "name": "listForSale",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "refundBuyer",
       "outputs": [],
@@ -618,24 +642,6 @@ const REG_ABI = [
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "watchId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "priceInWei",
-          "type": "uint256"
-        }
-      ],
-      "name": "setPrice",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {

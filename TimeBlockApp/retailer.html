@@ -75,7 +75,7 @@
   
     const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
     const MANAGEMENT_CONTRACT_ADDRESS = "0x4a1842586d82e73569385106e83f63ede0853fdc";
-    const TRANSACTION_CONTRACT_ADDRESS = "0xa39c8f80fcb497be80720d4824e920caf5eeb4c9";
+    const TRANSACTION_CONTRACT_ADDRESS = "0x77caa8794cb5d6083f82b43ec43c75337a4e0b69";
   
     const transactionHistory = [];
   
@@ -98,41 +98,46 @@
       const address = await signer.getAddress();
       walletText.textContent = `Connected wallet: ${address}`;
     }
-  
+
     async function loadWatchOptions() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const myAddress = await signer.getAddress();
-  
+    
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
       const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
-  
+    
       const count = await reg.watchCount();
       viewDropdown.innerHTML = priceDropdown.innerHTML =
         '<option selected disabled>Select watch</option>';
-  
+    
       for (let i = 1; i <= count; i++) {
         const currentOwner = await mgmt.getCurrentOwner(i);
         if (currentOwner.toLowerCase() !== myAddress.toLowerCase()) continue;
-  
+    
+        const isListed = await txContract.isForSale(i);
         const watch = await reg.getWatchDetails(i);
         const label = `${watch.model} (${watch.serialNumber})`;
-  
+    
         let priceText = '';
         try {
           const rawPrice = await txContract.getPrice(i);
           const eth = ethers.utils.formatEther(rawPrice);
           priceText = ` - ${eth} ETH`;
         } catch (_) {}
-  
+    
         const display = `${label}${priceText}`;
         const option = new Option(display, i);
-  
+    
         viewDropdown.appendChild(option.cloneNode(true));
-        priceDropdown.appendChild(option);
+    
+        if (!isListed) {
+          priceDropdown.appendChild(option);
+        }
       }
     }
+  
   
     async function showCertificate() {
       const selectedId = parseInt(viewDropdown.value);
@@ -155,79 +160,47 @@
       alert(message);
     }
   
-    async function setWatchPrice() {
-      const button = document.getElementById("setPriceBtn");
+    async function createListing() {
+      const button = document.getElementById("listSaleBtn");
       const selectedId = parseInt(priceDropdown.value);
       const ethValue = document.getElementById("priceInput").value;
-  
+    
       if (isNaN(selectedId) || !ethValue) {
         alert("Please select a watch and enter a price.");
         return;
       }
-  
+    
       button.disabled = true;
       const originalText = button.textContent;
-      button.textContent = "processing...";
-  
+      button.textContent = "Processing...";
+    
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
-  
+    
         const weiAmount = ethers.utils.parseEther(ethValue);
-        const tx = await txContract.setPrice(selectedId, weiAmount);
+    
+        const tx = await txContract.createListing(selectedId, weiAmount);
         await tx.wait();
-  
+    
         const selectedOption = priceDropdown.options[priceDropdown.selectedIndex].text;
-        transactionHistory.push(`Set price of ${ethValue} ETH for ${selectedOption}`);
+        transactionHistory.push(`Listed ${selectedOption} at ${ethValue} ETH`);
         updateHistory();
         await loadWatchOptions();
         await loadListedWatches();
-        alert(`Price set: ${ethValue} ETH for ${selectedOption}`);
+    
+        alert(`Watch listed for sale at ${ethValue} ETH.`);
       } catch (err) {
         console.error(err);
-        alert("Failed to set price: " + (err.data?.message || err.message));
+        alert("Failed to list watch: " + (err.data?.message || err.message));
       } finally {
         button.disabled = false;
         button.textContent = originalText;
       }
     }
-  
-    async function listWatchForSale() {
-      const button = document.getElementById("listSaleBtn");
-      const selectedId = parseInt(priceDropdown.value);
-  
-      if (isNaN(selectedId)) {
-        alert("Please select a watch to list for sale.");
-        return;
-      }
-  
-      button.disabled = true;
-      const originalText = button.textContent;
-      button.textContent = "processing...";
-  
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
-  
-        const tx = await txContract.listForSale(selectedId);
-        await tx.wait();
-  
-        const selectedOption = priceDropdown.options[priceDropdown.selectedIndex].text;
-        transactionHistory.push(`${selectedOption} listed for sale`);
-        updateHistory();
-        await loadListedWatches();
-  
-        alert(`${selectedOption} successfully listed for sale.`);
-      } catch (err) {
-        console.error(err);
-        alert("Failed to list for sale: " + (err.data?.message || err.message));
-      } finally {
-        button.disabled = false;
-        button.textContent = originalText;
-      }
-    }
+    
+    
   
     async function loadListedWatches() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -294,8 +267,7 @@
       await listenToPayments();
   
       document.getElementById("certBtn").addEventListener("click", showCertificate);
-      document.getElementById("setPriceBtn").addEventListener("click", setWatchPrice);
-      document.getElementById("listSaleBtn").addEventListener("click", listWatchForSale);
+      document.getElementById("listSaleBtn").addEventListener("click", createListing);
       document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
     });
   </script>
