@@ -75,11 +75,12 @@
             <!-- Certificate Verification (also available in sell view) -->
             <div class="action-box">
               <h4>Verify & View Certificate</h4>
-              <select id="buyDropdown" class="text-input">
+              <select id="sellerCertVerifyDropdown" class="text-input">
                 <option selected disabled>Select a watch</option>
               </select>
               <button id="viewCertBtnSell" class="primary-btn full-width">View Certificate & Verify</button>
             </div>
+
 
             <!-- Create Watch Listing -->
             <div class="action-box">
@@ -122,16 +123,20 @@
       const sellView = document.getElementById("sellView");
       const viewContainer = document.getElementById("viewContainer");
 
-      function updateView() {
+      async function updateView() {
         const selected = viewSelector.value;
         if (!selected) return;
-
+      
         viewContainer.style.display = "flex";
         buyerView.style.display = selected === "buyer" ? "grid" : "none";
         sellView.style.display = selected === "sell" ? "grid" : "none";
-
+      
         if (selected === "sell") {
-          loadMarketListedWatches?.();
+          await loadMarketListedWatches?.();
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          const address = await signer.getAddress();
+          await loadSellerOwnedWatches?.(address);
         }
       }
 
@@ -172,6 +177,26 @@
         }
       }
     }
+
+    async function loadSellerOwnedWatches(currentAddress) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+    
+      const dropdown = document.getElementById("sellerCertVerifyDropdown");
+      dropdown.innerHTML = '<option selected disabled>Select a watch</option>';
+    
+      const count = await reg.watchCount();
+      for (let i = 1; i <= count; i++) {
+        const owner = await mgmt.getCurrentOwner(i);
+        if (owner.toLowerCase() === currentAddress.toLowerCase()) {
+          const details = await reg.getWatchDetails(i);
+          const label = `${details.model} (${details.serialNumber})`;
+          dropdown.appendChild(new Option(label, i));
+        }
+      }
+    }
+    
   
     async function loadWatchesForSale() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -252,45 +277,146 @@
       }
     }
   
-    async function buyWatch() {
-      const id = parseInt(buyDropdown.value);
-      if (isNaN(id)) return alert("Please select a watch.");
-  
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const market = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
-      const price = await market.getPrice(id);
-  
+    async function buyWatch(watchId) {
       try {
-        const tx = await market.buyWatch(id, { value: price });
+        // MetaMask connection
+        if (!window.ethereum) throw new Error("MetaMask not found");
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+    
+        // Connect to contract
+        const contract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
+    
+        // Check if watch is for sale
+        const saleStatus = await contract.forSale(watchId);
+        if (!saleStatus) {
+          alert("This watch is not for sale.");
+          return;
+        }
+    
+        // Get watch price
+        const price = await contract.watchPrices(watchId);
+        if (price.eq(0)) {
+          alert("Invalid price for this watch.");
+          return;
+        }
+    
+        // Call deposit with value
+        const tx = await contract.deposit({ value: price });
         await tx.wait();
-        alert(`Successfully bought watch ${id}`);
-        await loadBuyerWatches(await signer.getAddress());
-        await loadWatchesForSale();
+
+        await loadWatchesForSale();  
+        await loadBuyerWatches(address); 
+        await loadSellerOwnedWatches(address); 
+
+        alert(`Purchase successful! Tx Hash: ${tx.hash}`);
+    
+        alert(`Purchase successful! Tx Hash: ${tx.hash}`);
       } catch (err) {
+        console.error(err);
         alert("Purchase failed: " + err.message);
       }
     }
   
+    document.getElementById("viewCertBtnSell").addEventListener("click", async () => {
+      const dropdown = document.getElementById("sellerCertVerifyDropdown");
+      const selectedId = parseInt(dropdown.value);
+      if (isNaN(selectedId)) return alert("Please select a watch.");
+    
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+    
+      const w = await reg.getWatchDetails(selectedId);
+      const current = await mgmt.getCurrentOwner(selectedId);
+      const isAuth = await mgmt.isAuthentic(selectedId);
+    
+      let message = isAuth ? `Authentic Certificate\n\n` : `Certificate NOT Authentic\n\n`;
+      message += `Model: ${w.model}\nSerial: ${w.serialNumber}\nManufacturer: ${w.issuedTo}`;
+      message += `\n\nCurrent Owner: ${current}`;
+    
+      alert(message);
+
+      
+    });
+    document.getElementById("viewCertBtnSell").addEventListener("click", async () => {
+      // keep this short function only for certificate viewing
+      const dropdown = document.getElementById("sellerCertVerifyDropdown");
+      const selectedId = parseInt(dropdown.value);
+      if (isNaN(selectedId)) return alert("Please select a watch.");
+    
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+    
+      const w = await reg.getWatchDetails(selectedId);
+      const current = await mgmt.getCurrentOwner(selectedId);
+      const isAuth = await mgmt.isAuthentic(selectedId);
+    
+      let message = isAuth ? `Authentic Certificate\n\n` : `Certificate NOT Authentic\n\n`;
+      message += `Model: ${w.model}\nSerial: ${w.serialNumber}\nManufacturer: ${w.issuedTo}`;
+      message += `\n\nCurrent Owner: ${current}`;
+    
+      alert(message);
+    });
+    
+    document.getElementById("viewCertBtnSell").addEventListener("click", async () => {
+      // keep this short function only for certificate viewing
+      const dropdown = document.getElementById("sellerCertVerifyDropdown");
+      const selectedId = parseInt(dropdown.value);
+      if (isNaN(selectedId)) return alert("Please select a watch.");
+    
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
+    
+      const w = await reg.getWatchDetails(selectedId);
+      const current = await mgmt.getCurrentOwner(selectedId);
+      const isAuth = await mgmt.isAuthentic(selectedId);
+    
+      let message = isAuth ? `Authentic Certificate\n\n` : `Certificate NOT Authentic\n\n`;
+      message += `Model: ${w.model}\nSerial: ${w.serialNumber}\nManufacturer: ${w.issuedTo}`;
+      message += `\n\nCurrent Owner: ${current}`;
+    
+      alert(message);
+    });
+    
+    // ✅ This goes OUTSIDE any other function
     window.addEventListener("DOMContentLoaded", async () => {
       if (!window.ethereum) {
         walletText.textContent = "MetaMask not found";
         return;
       }
-  
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      walletText.textContent = `Connected wallet: ${address}`;
-  
-      await loadBuyerWatches(address);
-      await loadWatchesForSale();
-      await loadListedWatchesForVerification();
-  
-      document.getElementById("viewCertVerifyBtn").addEventListener("click", showCertificateForVerification);
-      document.getElementById("buyBtn").addEventListener("click", buyWatch);
+    
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        walletText.textContent = `Connected wallet: ${address}`;
+    
+        await loadBuyerWatches(address);
+        await loadWatchesForSale();
+        await loadListedWatchesForVerification();
+        await loadSellerOwnedWatches(address);
+    
+        document.getElementById("buyBtn").addEventListener("click", () => {
+          const selected = buyDropdown.value;
+          if (!selected) {
+            alert("Please select a watch to buy.");
+            return;
+          }
+          buyWatch(parseInt(selected));
+        });
+    
+        document.getElementById("viewCertVerifyBtn").addEventListener("click", showCertificateForVerification);
+      } catch (err) {
+        walletText.textContent = "Error connecting to wallet";
+        console.error("MetaMask connection error:", err);
+      }
     });
+    
   </script>
   
 </body>
