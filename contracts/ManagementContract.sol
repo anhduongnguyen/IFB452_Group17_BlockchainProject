@@ -76,5 +76,15 @@ contract ManagementContract {
         return watchToOwner[watchId];
     }
 
+    function isAuthentic(uint256 watchId) external view returns (bool) {
+        IRegistrationContract reg = IRegistrationContract(registrationContract);
+        (string memory model, string memory serialNumber, , , , address issuedTo) = reg.getWatchDetails(watchId);
+
+        return (
+            bytes(model).length > 0 &&
+            bytes(serialNumber).length > 0 &&
+            issuedTo != address(0)
+        );
+    }
     
 }

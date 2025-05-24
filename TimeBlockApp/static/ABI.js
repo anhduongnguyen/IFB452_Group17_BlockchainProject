@@ -318,6 +318,25 @@ const REG_ABI = [
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
+      "name": "isAuthentic",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "registrationContract",
       "outputs": [
