@@ -157,7 +157,7 @@
   
     const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
     const MANAGEMENT_CONTRACT_ADDRESS = "0xe6ba2cfef549aa6622d1c1cc9329e75a4ed56edf";
-    const TRANSACTION_CONTRACT_ADDRESS = "0x77caa8794cb5d6083f82b43ec43c75337a4e0b69";
+    const TRANSACTION_CONTRACT_ADDRESS = "0x6b8ed23fd1ed328bdf6d605ac0ca9570847a6c7e";
   
     async function loadBuyerWatches(currentAddress) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -279,38 +279,33 @@
   
     async function buyWatch(watchId) {
       try {
-        // MetaMask connection
         if (!window.ethereum) throw new Error("MetaMask not found");
         await window.ethereum.request({ method: "eth_requestAccounts" });
+    
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
+        const address = await signer.getAddress(); // FIXED: get current wallet address
     
-        // Connect to contract
         const contract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
     
-        // Check if watch is for sale
-        const saleStatus = await contract.forSale(watchId);
+        const saleStatus = await contract.isForSale(watchId);
         if (!saleStatus) {
           alert("This watch is not for sale.");
           return;
         }
     
-        // Get watch price
-        const price = await contract.watchPrices(watchId);
+        const price = await contract.getPrice(watchId);
         if (price.eq(0)) {
           alert("Invalid price for this watch.");
           return;
         }
     
-        // Call deposit with value
-        const tx = await contract.deposit({ value: price });
+        const tx = await contract.deposit(watchId, { value: price }); // include watchId
         await tx.wait();
-
+    
         await loadWatchesForSale();  
         await loadBuyerWatches(address); 
         await loadSellerOwnedWatches(address); 
-
-        alert(`Purchase successful! Tx Hash: ${tx.hash}`);
     
         alert(`Purchase successful! Tx Hash: ${tx.hash}`);
       } catch (err) {
@@ -318,6 +313,7 @@
         alert("Purchase failed: " + err.message);
       }
     }
+    
   
     document.getElementById("viewCertBtnSell").addEventListener("click", async () => {
       const dropdown = document.getElementById("sellerCertVerifyDropdown");

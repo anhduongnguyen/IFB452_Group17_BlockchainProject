@@ -412,6 +412,12 @@ const REG_ABI = [
         {
           "indexed": false,
           "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
         }
@@ -431,6 +437,12 @@ const REG_ABI = [
         {
           "indexed": false,
           "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
         }
@@ -446,6 +458,12 @@ const REG_ABI = [
           "internalType": "address",
           "name": "buyer",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
         },
         {
           "indexed": false,
@@ -477,7 +495,13 @@ const REG_ABI = [
       "type": "event"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "name": "amount",
       "outputs": [
         {
@@ -490,7 +514,13 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "name": "buyer",
       "outputs": [
         {
@@ -521,7 +551,13 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
       "name": "deposit",
       "outputs": [],
       "stateMutability": "payable",
@@ -547,39 +583,19 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
-      "name": "fundsDeposited",
-      "outputs": [
+      "inputs": [
         {
-          "internalType": "bool",
+          "internalType": "uint256",
           "name": "",
-          "type": "bool"
+          "type": "uint256"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "fundsReleased",
       "outputs": [
         {
           "internalType": "bool",
           "name": "",
           "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getBalance",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -612,6 +628,25 @@ const REG_ABI = [
           "type": "uint256"
         }
       ],
+      "name": "getStatus",
+      "outputs": [
+        {
+          "internalType": "enum TransactionContract.Status",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
       "name": "isForSale",
       "outputs": [
         {
@@ -624,14 +659,26 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
       "name": "refundBuyer",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "name": "refunded",
       "outputs": [
         {
@@ -644,7 +691,13 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "watchId",
+          "type": "uint256"
+        }
+      ],
       "name": "releaseFunds",
       "outputs": [],
       "stateMutability": "nonpayable",
@@ -664,7 +717,13 @@ const REG_ABI = [
       "type": "function"
     },
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
       "name": "status",
       "outputs": [
         {
