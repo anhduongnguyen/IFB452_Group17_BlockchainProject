@@ -455,7 +455,6 @@
         const watch = await reg.getWatchDetails(watchId);
         const label = `${watch.model} (${watch.serialNumber})`;
 
-        const log = `You paid ${eth} ETH for ${label}`;
         transactionHistory.push(log);
         updateHistory();
       });

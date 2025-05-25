@@ -181,25 +181,6 @@ const MANAGEMENT_ABI = [
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "DebugOwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "uint256",
-				"name": "watchId",
-				"type": "uint256"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
 				"name": "toRetailer",
 				"type": "address"
 			}
@@ -327,53 +308,8 @@ const MANAGEMENT_ABI = [
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "isRetailer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"name": "registrationContract",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_txContract",
-				"type": "address"
-			}
-		],
-		"name": "setTransactionContract",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "transactionContract",
 		"outputs": [
 			{
 				"internalType": "address",
