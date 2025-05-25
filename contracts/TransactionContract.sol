@@ -50,8 +50,11 @@ contract TransactionContract {
 
         emit PaymentDeposited(msg.sender, watchId, msg.value);
 
+        forSale[watchId] = false;
+
         IManagementContract(managementContract).transferToBuyer(watchId, msg.sender);
     }
+
 
     function releaseFunds(uint256 watchId, address recipient) external {
         require(status[watchId] == Status.AwaitingConfirmation, "Invalid state");
