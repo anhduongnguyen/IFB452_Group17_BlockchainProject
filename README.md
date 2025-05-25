@@ -39,7 +39,7 @@ instead of old paper work that could be misleading.
 * **Blockchain Integration:**  <to be added>
 
 
-
+`
 ## 2. Key Features
 
 * **Role-based Dashboards:** tailerd Dashboards for differenet stakeholders of the application which only shows relavent data relating to them. 
@@ -88,18 +88,25 @@ instead of old paper work that could be misleading.
 * Node.js & npm are required to run the localhost
 ```
     https://nodejs.org/en & https://www.npmjs.com/
+    
 ```
+
+* Lite server is required 
+```
+    npm install -g lite-server
+```
+
 * MetaMask extension is required to connect the wallet with the application 
 ``` 
     https://metamask.io/
 ```
 
 * With the metamask account u a required to register or log into a account
-once logged in 
-1. click select a network 
-2. show test networks 
-3. click sepolia as the network
+* Open MetaMask 
 
+1. click the network dropdown
+2. Enable “Show test networks”
+3. Select “Sepolia Test Network”
 * Once connected go to a faucet website e.g
 ```
     https://cloud.google.com/application/web3/faucet/ethereum/sepolia
@@ -114,8 +121,11 @@ once logged in
 
 ```bash
 git clone https://github.com/anhduongnguyen/IFB452_Group17_BlockchainProject.git
-cd TimeBlockApp
+cd IFB452_Group17_BlockchainProject
+git checkout main
+git pull
 
+doing this will give u full access to the applications code
 ```
 
 ## 6. Smart Contract Deployment
@@ -124,7 +134,7 @@ cd TimeBlockApp
 
 1. Open `contracts/` in Remix IDE
 2. Compile each `.sol` file
-3. Deploy to Sepolia or local Hardhat network
+3. Dploy to Sepolia or local Hardhat network
 
 ### Update ABI.js
 
@@ -138,57 +148,65 @@ cd TimeBlockApp
 
 ### Open in Browser
 
+* In the CMD get into the timeblockAPP directorty blockchain\TimeBlockApp once your in this sub directorty run this command
 ```bash
-got to your Repository directory on the local device and run the following commands
-    npm install -g lite-server
     lite-server
 ```
-once installed Navigate to cd TimeBlockApp
-then enter in the cmd lite-server which will open the application on `http://localhost:3000`
+* This command will start the server and be hosted on the `http://localhost:3000`
 
 ### Connect Wallet
 
-* Approve MetaMask connection on page load
-* Switch network to Sepolia please ensuring that funds are avaliable 
+* When you first access the server you will be asked to connect your wallet
+* To connect your wallet select the connect wallet button , you will be then prompt to sign in again to make the connection work.
+* once logged in Switch the network to  Sepolia if its already not selected by default already.  
 
 ## 8. Using the App
 
 ### Manufacturer Workflow
 
-1. Add new watch
-
-2. Mint certificate
-3. Transfer to Reseller
+1. Register a New WatchFill by entering in the serial number, brand, production date, and model then 
+Click the Generate Certificate to mint a new NFT on the blockchain.to Confirm the on-chain transaction on the MetaMask app.
+2. To View a Certificate Select the dropdown with the title view certificate about it. once clicked it will Show Certificates 
+and its corasponding infomation (serial, brand, model, date).
+3. Assign to Retailer by Entering the retailers crypto wallet address into the box , then choose the watch that is being transferd 
+to the retailer and click Assign to transfer ownership. 
 
 ### Retailer Workflow
+1. View Certificate by clicking on  the dropdown to pick a new assigned watch and click Show Certificate to verify authenticity.
+2. Create a Watch Listing by  selecting a watch and entering a sale price once the price has been entered Click List for Sale.
+3. Watches Listed for Sale  will Display at the bottem of the application showing all active listings active on the chain.
+4. Transaction History Logs every incoming and outgoing transfers.
 
-1. View incoming certificates
-2. Set watch price
-3. List watch for sale
-
-### Buyer Workflow
-
-1. View certificate authenticity
-2. Deposit ETH into escrow
-3. Claim watch on-chain
+### Buyer Workflow 
+1. Select a view and Switch between the  buyers View or the Sellers View using the dropdown at the top.
+2. Verify & View Certificates by Selecting a watch and then clicking the View Certificate  to Verify before purchase.
+3. Buy from a Retailer by Choose a listing then input the requierd amount of funds and enter the sellers address.
+4. Transaction History shows the user all about current deposit, verification, and ownership-claim events with details.
 
 ### Reseller Workflow
 
-1. Verify certificate
-2. Purchase from Retailer
-3. Transfer ownership
+1.  Verify & View Certificate by Ensuring any acquired watches remains genuine by selecting it and clicking View Certificate & Verify
+2.  buying from a customer is a simple as selecting a watch listed by another seller , then entering the ETH amount and recipient address, then Buy Now.
+3. Transaction History shows the user all about current deposit, verification, and ownership-claim events with detail
 
 ## 9. Troubleshooting
 
-* MetaMask not detecting site: ensure network matches
-* ABI mismatch: recompile and update `ABI.js`
-* Price not updating: clear localStorage
+* server wont start 
+```
+    Check that lite-server is installed globally (npm install -g lite-server)
+    Ensure that your in the correct directory (/TimeBlockApp) when starting the lite-server
+```
+* if metemask isnt working 
+``` 
+    ensure you are logged in with a valid account with funds
+    verify that your network is on the correct currency sepolia
+```
 
 ## 10. Future Improvements
 
-* Multi-watch portfolios
-* IPFS for certificate storage
-* Mainnet deployment
+1. Certificate lifecycle management improvments, this can be done by Implementing a system to revocation and renewal processes so that lost or compromised certificates can be invalidated or reissued securely.
+2. Advanced analytics dashboard which can be given to stakeholders to view more data about how their whatches are going through the process 
+3. Imporve performance and gass by Utilising smart contract design patterns and explore meta-transactions or relayer networks to lower user costs per each transaction.
 
 ## 11. License
 
