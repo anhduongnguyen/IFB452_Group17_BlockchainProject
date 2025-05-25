@@ -1,3 +1,5 @@
+// This file contains the contract addresses used in the TimeBlock application
+
 const REG_ABI = [
     {
       "anonymous": false,

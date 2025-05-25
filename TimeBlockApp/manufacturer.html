@@ -16,15 +16,15 @@
       <div class="back-button">
         <a href="home.html">← Back</a>
       </div>
-  
+
       <div id="walletAddress" class="wallet-address">
         <img src="static/img/2048px-MetaMask_Fox.png" alt="Fox" class="wallet-inline-icon">
         <span id="walletText">Connected wallet: Loading</span>
       </div>
-  
+
       <h2 class="app-title" style="margin-top: 2rem;">Manufacturer</h2>
-  
-      <!-- Register New Watch form -->
+
+      <!-- Register New Watch form box -->
       <div class="form-section">
         <div class="form-header">
           <h3>Register New Watch</h3>
@@ -37,9 +37,10 @@
           <input type="text" id="metadata" placeholder="Model">
         </div>
       </div>
-  
+
       <div class="action-grid">
-        <!-- Certificate Viewer -->
+
+        <!-- View certificate box-->
         <div class="action-box">
           <h4>View Certificate</h4>
           <select id="watchDropdown">
@@ -47,8 +48,8 @@
           </select>
           <button class="primary-btn full-width" id="certBtn">Show Certificate</button>
         </div>
-  
-        <!-- Assign to Retailer -->
+
+        <!-- Assign to Retailer box -->
         <div class="action-box">
           <h4>Assign to retailer</h4>
           <input type="text" id="retailerAddress" placeholder="Retailer wallet address">
@@ -58,8 +59,8 @@
           <button class="primary-btn full-width" id="assignBtn">Assign</button>
         </div>
       </div>
-  
-      <!-- Transaction History -->
+
+      <!-- Transaction History section -->
       <div class="form-section">
         <div class="form-header">
           <h3>Transaction History</h3>
@@ -77,192 +78,194 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <script type="module">
 
-    import {REG_ABI, MANAGEMENT_ABI} from './static/ABI.js';
+    import { REG_ABI, MANAGEMENT_ABI } from './static/ABI.js';
 
-    import {REG_CONTRACT_ADDRESS, MANAGEMENT_CONTRACT_ADDRESS} from './static/addresses.js';
+    import { REG_CONTRACT_ADDRESS, MANAGEMENT_CONTRACT_ADDRESS } from './static/addresses.js';
     const walletText = document.getElementById('walletText');
     const watchDropdown = document.getElementById("watchDropdown");
     const assignDropdown = document.getElementById("assignDropdown");
 
+    const transactionHistory = [];
 
+    // Load transaction history from localStorage 
+    function updateHistory() {
+      localStorage.setItem('manufacturerHistory', JSON.stringify(transactionHistory));
+      const box = document.getElementById("historyBox");
+      box.innerHTML = transactionHistory.length === 0
+        ? '<p>Transactions will appear here after transfers.</p>'
+        : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
+    }
 
-  const transactionHistory = [];
+    // Load watch options for dropdowns
+    async function loadWatchOptions() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
 
-  function updateHistory() {
-    localStorage.setItem('manufacturerHistory', JSON.stringify(transactionHistory));
-    const box = document.getElementById("historyBox");
-    box.innerHTML = transactionHistory.length === 0
-      ? '<p>Transactions will appear here after transfers.</p>'
-      : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
-  }
-  
-  async function loadWatchOptions() {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-    const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
-  
-    const count = await regContract.watchCount();
-  
-    watchDropdown.innerHTML = '<option selected disabled>Select watch</option>';
-    assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
-  
-    for (let i = 1; i <= count; i++) {
-      const watch = await regContract.getWatchDetails(i);
-      const owner = await mgmtContract.getCurrentOwner(i);
-  
-      // Display all in certificate viewer
-      const option = new Option(`${watch.model} (${watch.serialNumber})`, i);
-      watchDropdown.appendChild(option.cloneNode(true));
-  
-      // Only add to assign dropdown if not already assigned
-      if (owner === ethers.constants.AddressZero) {
-        assignDropdown.appendChild(option);
+      const count = await regContract.watchCount();
+
+      watchDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+      assignDropdown.innerHTML = '<option selected disabled>Select watch</option>';
+
+      for (let i = 1; i <= count; i++) {
+        const watch = await regContract.getWatchDetails(i);
+        const owner = await mgmtContract.getCurrentOwner(i);
+
+        const option = new Option(`${watch.model} (${watch.serialNumber})`, i);
+        watchDropdown.appendChild(option.cloneNode(true));
+
+        // Only add to assign dropdown if not already assigned
+        if (owner === ethers.constants.AddressZero) {
+          assignDropdown.appendChild(option);
+        }
       }
     }
-  }
 
-  async function registerWatch() {
-    const serial = document.getElementById("serial").value;
-    const brand = document.getElementById("brand").value;
-    const date = document.getElementById("date").value;
-    const model = document.getElementById("metadata").value;
-    const registerBtn = document.getElementById("registerBtn");
+    // Register new watch and generate certificate
+    async function registerWatch() {
+      const serial = document.getElementById("serial").value;
+      const brand = document.getElementById("brand").value;
+      const date = document.getElementById("date").value;
+      const model = document.getElementById("metadata").value;
+      const registerBtn = document.getElementById("registerBtn");
 
-    if (!serial || !brand || !date || !model) {
-      alert("Please fill in all fields.");
-      return;
+      if (!serial || !brand || !date || !model) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Processing...";
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, signer);
+
+        const tx = await contract.registerWatch(model, serial, brand, date);
+        await tx.wait();
+        alert("Certificate created!");
+        await loadWatchOptions();
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.textContent = "Generate Certificate";
+      }
     }
 
-    registerBtn.disabled = true;
-    registerBtn.textContent = "Processing...";
-
-    try {
+    // Show certificate details for selected watch
+    async function showCertificate() {
+      const selectedId = parseInt(watchDropdown.value);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, signer);
+      const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
+      const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
 
-      const tx = await contract.registerWatch(model, serial, brand, date);
-      await tx.wait();
-      alert("Certificate created!");
-      await loadWatchOptions();
-    } catch (err) {
-      alert("Error: " + err.message);
-    } finally {
-      registerBtn.disabled = false;
-      registerBtn.textContent = "Generate Certificate";
-    }
-  }
-
-  async function showCertificate() {
-    const selectedId = parseInt(watchDropdown.value);
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-    const mgmtContract = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
-
-    const watch = await regContract.getWatchDetails(selectedId);
-    const currentOwner = await mgmtContract.getCurrentOwner(selectedId);
-
-    let message = `Certificate for ${watch.model}\nSerial: ${watch.serialNumber}\nIssued to: ${watch.issuedTo}`;
-    if (currentOwner !== ethers.constants.AddressZero) {
-      message += `\nCurrent Owner: ${currentOwner}`;
-    }
-
-    alert(message);
-  }
-
-  async function assignToRetailer() {
-    const retailer = document.getElementById("retailerAddress").value;
-    const selectedId = parseInt(assignDropdown.value);
-    const assignBtn = document.getElementById("assignBtn");
-  
-    if (!retailer || isNaN(selectedId)) {
-      alert("Please select a watch and enter a retailer address.");
-      return;
-    }
-  
-    assignBtn.disabled = true;
-    assignBtn.textContent = "Processing...";
-  
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-  
-      // Assign watch via management contract
-      const managementContract = new ethers.Contract(
-        MANAGEMENT_CONTRACT_ADDRESS,
-        MANAGEMENT_ABI,
-        signer
-      );
-      const tx = await managementContract.assignToRetailer(selectedId, retailer);
-      await tx.wait();
-  
-      const regContract = new ethers.Contract(
-        REG_CONTRACT_ADDRESS,
-        REG_ABI,
-        provider
-      );
       const watch = await regContract.getWatchDetails(selectedId);
-      const label = `${watch.model} (${watch.serialNumber})`;
-  
-      // Update history once
-      transactionHistory.push(`${label} assigned to ${retailer}`);
-      updateHistory();
-  
-      await loadWatchOptions();
-      alert(`${label} assigned to ${retailer}`);
-    } catch (err) {
-      alert("Error: " + err.message);
-    } finally {
-      assignBtn.disabled = false;
-      assignBtn.textContent = "Assign";
-    }
-  }
-  
-  function clearHistory() {
-    transactionHistory.length = 0;
-    localStorage.removeItem('manufacturerHistory');
-    updateHistory();
-  }
-  
-  
+      const currentOwner = await mgmtContract.getCurrentOwner(selectedId);
 
-  window.addEventListener("DOMContentLoaded", async () => {
-    // Check for MetaMask
-    if (!window.ethereum) {
-      walletText.textContent = "MetaMask not found";
-      return;
-    }
-  
-    try {
-      // Connect to wallet and display address
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      walletText.textContent = `Connected wallet: ${address}`;
-  
-      // Load watch dropdowns
-      await loadWatchOptions();
-  
-      // Restore and display transaction history from localStorage
-      const savedHistory = localStorage.getItem('manufacturerHistory');
-      if (savedHistory) {
-        transactionHistory.push(...JSON.parse(savedHistory));
-        updateHistory();
+      let message = ` Certificate for ${watch.model}\n`;
+      message += `Serial Number: ${watch.serialNumber}\n`;
+      message += `Manufacturer: ${watch.manufacturer}\n`;
+      message += `Production Date: ${watch.productionDate}\n`;
+      message += `Issued To: ${watch.issuedTo}\n`;
+
+      if (currentOwner !== ethers.constants.AddressZero) {
+        message += `\nCurrent Owner: ${currentOwner}`;
       }
-  
-      // Set up button event listeners
-      document.getElementById("registerBtn").addEventListener("click", registerWatch);
-      document.getElementById("certBtn").addEventListener("click", showCertificate);
-      document.getElementById("assignBtn").addEventListener("click", assignToRetailer);
-      document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
 
-    } catch (error) {
-      console.error("Error during initialization:", error);
-      walletText.textContent = "Wallet connection failed.";
+      alert(message);
     }
-  });
-  
-</script>
+
+    // Assign watch to retailer via management contract
+    async function assignToRetailer() {
+      const retailer = document.getElementById("retailerAddress").value;
+      const selectedId = parseInt(assignDropdown.value);
+      const assignBtn = document.getElementById("assignBtn");
+
+      if (!retailer || isNaN(selectedId)) {
+        alert("Please select a watch and enter a retailer address.");
+        return;
+      }
+
+      assignBtn.disabled = true;
+      assignBtn.textContent = "Processing...";
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+
+        const managementContract = new ethers.Contract(
+          MANAGEMENT_CONTRACT_ADDRESS,
+          MANAGEMENT_ABI,
+          signer
+        );
+        const tx = await managementContract.assignToRetailer(selectedId, retailer);
+        await tx.wait();
+
+        const regContract = new ethers.Contract(
+          REG_CONTRACT_ADDRESS,
+          REG_ABI,
+          provider
+        );
+        const watch = await regContract.getWatchDetails(selectedId);
+        const label = `${watch.model} (${watch.serialNumber})`;
+
+        transactionHistory.push(`${label} assigned to ${retailer}`);
+        updateHistory();
+
+        await loadWatchOptions();
+        alert(`${label} assigned to ${retailer}`);
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        assignBtn.disabled = false;
+        assignBtn.textContent = "Assign";
+      }
+    }
+
+    // Clear transaction history
+    function clearHistory() {
+      transactionHistory.length = 0;
+      localStorage.removeItem('manufacturerHistory');
+      updateHistory();
+    }
+
+    // Initialise wallet connection and load data
+    window.addEventListener("DOMContentLoaded", async () => {
+      // Check for MetaMask
+      if (!window.ethereum) {
+        walletText.textContent = "MetaMask not found";
+        return;
+      }
+
+      try {
+        // Connect to wallet and display address
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        walletText.textContent = `Connected wallet: ${address}`;
+
+        await loadWatchOptions();
+
+        const savedHistory = localStorage.getItem('manufacturerHistory');
+        if (savedHistory) {
+          transactionHistory.push(...JSON.parse(savedHistory));
+          updateHistory();
+        }
+
+        document.getElementById("registerBtn").addEventListener("click", registerWatch);
+        document.getElementById("certBtn").addEventListener("click", showCertificate);
+        document.getElementById("assignBtn").addEventListener("click", assignToRetailer);
+        document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
+
+      } catch (error) {
+        walletText.textContent = "Wallet connection failed.";
+      }
+    });
+
+  </script>
 </body>
+
 </html>

@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TimeBlock | Retailer</title>
   <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
   <link rel="stylesheet" href="static/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <main class="container" style="height: auto; align-items: flex-start;">
     <section class="card">
@@ -23,7 +25,8 @@
       <h2 class="app-title" style="margin-top: 2rem;">Retailer</h2>
 
       <div class="action-grid">
-        <!-- Certificate Viewer -->
+
+        <!-- Certificate Viewer box -->
         <div class="action-box">
           <h4>View Certificate</h4>
           <select id="watchDropdown">
@@ -32,7 +35,7 @@
           <button class="primary-btn full-width" id="certBtn">Show Certificate</button>
         </div>
 
-        <!-- Set Price and watch for sale-->
+        <!-- Set Price and watch for sale box-->
         <div class="action-box">
           <h4>Create Watch Listing</h4>
           <select id="priceDropdown">
@@ -43,6 +46,7 @@
         </div>
       </div>
 
+      <!-- Display watches retailer has placed on sale  -->
       <div class="form-section">
         <div class="form-header">
           <h3>Watches Listed for Sale</h3>
@@ -52,6 +56,7 @@
         </ul>
       </div>
 
+      <!-- Display watches retailer has placed on sale  -->
       <div class="form-section">
         <div class="form-header">
           <h3>Transaction History</h3>
@@ -68,15 +73,15 @@
   <script type="module">
     import { REG_ABI, MANAGEMENT_ABI, TRANSACTION_ABI } from './static/ABI.js';
     import { REG_CONTRACT_ADDRESS, MANAGEMENT_CONTRACT_ADDRESS, TRANSACTION_CONTRACT_ADDRESS } from './static/addresses.js';
-  
+
     const walletText = document.getElementById('walletText');
     const viewDropdown = document.getElementById("watchDropdown");
     const priceDropdown = document.getElementById("priceDropdown");
     const listedWatchesBox = document.getElementById("listedWatchesBox");
-  
-  
+
     const transactionHistory = [];
-  
+
+    // Load history from localStorage 
     function updateHistory() {
       localStorage.setItem('retailerHistory', JSON.stringify(transactionHistory));
       const box = document.getElementById("transactionBox");
@@ -84,7 +89,8 @@
         ? '<p>Transactions will appear here after transfers.</p>'
         : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
     }
-  
+
+    // Connect to MetaMask and get wallet address
     async function connectWallet() {
       if (!window.ethereum) {
         walletText.textContent = "MetaMask not found";
@@ -97,127 +103,132 @@
       walletText.textContent = `Connected wallet: ${address}`;
     }
 
+    // Load watch options for dropdowns
     async function loadWatchOptions() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const myAddress = await signer.getAddress();
-    
+
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
       const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
-    
+
       const count = await reg.watchCount();
       viewDropdown.innerHTML = priceDropdown.innerHTML =
         '<option selected disabled>Select watch</option>';
-    
+
       for (let i = 1; i <= count; i++) {
         const currentOwner = await mgmt.getCurrentOwner(i);
         if (currentOwner.toLowerCase() !== myAddress.toLowerCase()) continue;
-    
+
         const isListed = await txContract.isForSale(i);
         const watch = await reg.getWatchDetails(i);
         const label = `${watch.model} (${watch.serialNumber})`;
-    
+
         let priceText = '';
         try {
           const rawPrice = await txContract.getPrice(i);
           const eth = ethers.utils.formatEther(rawPrice);
           priceText = ` - ${eth} ETH`;
-        } catch (_) {}
-    
+        } catch (_) { }
+
         const display = `${label}${priceText}`;
         const option = new Option(display, i);
-    
+
         viewDropdown.appendChild(option.cloneNode(true));
-    
+
         if (!isListed) {
           priceDropdown.appendChild(option);
         }
       }
     }
-  
-  
+
+    // Show certificate details for selected watch
     async function showCertificate() {
       const selectedId = parseInt(viewDropdown.value);
       if (isNaN(selectedId)) {
         alert("Please select a watch first.");
         return;
       }
-  
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
       const mgmt = new ethers.Contract(MANAGEMENT_CONTRACT_ADDRESS, MANAGEMENT_ABI, provider);
-  
+
       const watch = await reg.getWatchDetails(selectedId);
       const currentOwner = await mgmt.getCurrentOwner(selectedId);
-  
-      let message = `Certificate for ${watch.model}\nSerial: ${watch.serialNumber}\nManufacturer: ${watch.issuedTo}`;
-      if (currentOwner !== ethers.constants.AddressZero) {
-        message += `\nCurrent Owner: ${currentOwner}`;
-      }
+      const isAuth = await mgmt.isAuthentic(selectedId);
+
+      let message = isAuth ? `Authentic Certificate\n` : `Certificate NOT Authentic\n`;
+      message += `Model: ${watch.model}\n`;
+      message += `Serial Number: ${watch.serialNumber}\n`;
+      message += `Manufacturer: ${watch.manufacturer}\n`;
+      message += `Production Date: ${watch.productionDate}\n`;
+      message += `Originally Issued To: ${watch.issuedTo}\n`;
+      message += `Current Owner: ${currentOwner}`;
+
       alert(message);
     }
-  
+
+    // Create a listing for the selected watch
     async function createListing() {
       const button = document.getElementById("listSaleBtn");
       const selectedId = parseInt(priceDropdown.value);
       const ethValue = document.getElementById("priceInput").value;
-    
+
       if (isNaN(selectedId) || !ethValue) {
         alert("Please select a watch and enter a price.");
         return;
       }
-    
+
       button.disabled = true;
       const originalText = button.textContent;
       button.textContent = "Processing...";
-    
+
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
-    
+
         const weiAmount = ethers.utils.parseEther(ethValue);
-    
+
         const tx = await txContract.createListing(selectedId, weiAmount);
         await tx.wait();
-    
+
         const selectedOption = priceDropdown.options[priceDropdown.selectedIndex].text;
         transactionHistory.push(`Listed ${selectedOption} at ${ethValue} ETH`);
         updateHistory();
         await loadWatchOptions();
         await loadListedWatches();
-    
+
         alert(`Watch listed for sale at ${ethValue} ETH.`);
       } catch (err) {
-        console.error(err);
         alert("Failed to list watch: " + (err.data?.message || err.message));
       } finally {
         button.disabled = false;
         button.textContent = originalText;
       }
     }
-    
-    
-  
+
+    // Load watches currently listed for sale
     async function loadListedWatches() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
       listedWatchesBox.innerHTML = "";
-    
+
       const count = await reg.watchCount();
       for (let i = 1; i <= count; i++) {
         try {
           const isListed = await txContract.isForSale(i);
           if (!isListed) continue;
-    
+
           const watch = await reg.getWatchDetails(i);
-          const rawPrice = await txContract.getPrice(i);  
-          const priceEth = ethers.utils.formatEther(rawPrice);  
-    
+          const rawPrice = await txContract.getPrice(i);
+          const priceEth = ethers.utils.formatEther(rawPrice);
+
           const label = `${watch.model} (${watch.serialNumber}) - ${priceEth} ETH`;
-    
+
           const li = document.createElement("li");
           li.textContent = label;
           listedWatchesBox.appendChild(li);
@@ -225,49 +236,51 @@
           console.warn(`Error loading watch ${i}:`, err);
         }
       }
-    
+
       if (!listedWatchesBox.hasChildNodes()) {
         listedWatchesBox.innerHTML = "<li>No watches currently listed for sale.</li>";
       }
     }
-    
+
+    // Listen for payment events and update transaction history
     async function listenToPayments() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
-  
+
       txContract.on("PaymentDeposited", (buyer, amount) => {
         const eth = ethers.utils.formatEther(amount);
         const log = `Payment of ${eth} ETH received from ${buyer}`;
         transactionHistory.push(log);
         updateHistory();
       });
-  
-      console.log("Listening for PaymentDeposited events...");
     }
-  
+
+    // Clear transaction history
     function clearHistory() {
       transactionHistory.length = 0;
       localStorage.removeItem('retailerHistory');
       updateHistory();
     }
-  
+
+    // Initialise wallet connection and load data
     window.addEventListener("DOMContentLoaded", async () => {
       await connectWallet();
       await loadWatchOptions();
       await loadListedWatches();
-  
+
       const savedHistory = localStorage.getItem('retailerHistory');
       if (savedHistory) {
         transactionHistory.push(...JSON.parse(savedHistory));
         updateHistory();
       }
-  
+
       await listenToPayments();
-  
+
       document.getElementById("certBtn").addEventListener("click", showCertificate);
       document.getElementById("listSaleBtn").addEventListener("click", createListing);
       document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
     });
   </script>
-  </body>
+</body>
+
 </html>

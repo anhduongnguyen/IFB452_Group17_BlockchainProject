@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+//Interface to call `transferToBuyer` from ManagementContract after payment
 interface IManagementContract {
     function transferToBuyer(uint256 watchId, address buyer) external;
 }
 
 contract TransactionContract {
-    enum Status { AwaitingDeposit, AwaitingConfirmation, Completed, Refunded }
+    enum Status {
+        AwaitingDeposit,
+        AwaitingConfirmation,
+        Completed,
+        Refunded
+    }
 
     address public managementContract;
 
-    // Per-watch mappings
+    // Mappings to manage watch sale state
     mapping(uint256 => uint256) public watchPrices;
     mapping(uint256 => bool) public forSale;
     mapping(uint256 => address) public buyer;
@@ -19,7 +25,11 @@ contract TransactionContract {
     mapping(uint256 => bool) public fundsReleased;
     mapping(uint256 => bool) public refunded;
 
-    event PaymentDeposited(address indexed buyer, uint256 watchId, uint256 amount);
+    event PaymentDeposited(
+        address indexed buyer,
+        uint256 watchId,
+        uint256 amount
+    );
     event FundsReleased(address indexed to, uint256 watchId, uint256 amount);
     event BuyerRefunded(address indexed buyer, uint256 watchId, uint256 amount);
     event WatchListed(uint256 indexed watchId, uint256 priceInWei);
@@ -28,6 +38,7 @@ contract TransactionContract {
         managementContract = _managementContract;
     }
 
+    // List a watch for sale by specifying price
     function createListing(uint256 watchId, uint256 priceInWei) external {
         require(priceInWei > 0, "Price must be greater than 0");
         require(!forSale[watchId], "Already listed");
@@ -39,6 +50,7 @@ contract TransactionContract {
         emit WatchListed(watchId, priceInWei);
     }
 
+    // Buyer deposits ETH to buy the watch
     function deposit(uint256 watchId) external payable {
         require(forSale[watchId], "Watch not for sale");
         require(status[watchId] == Status.AwaitingDeposit, "Already funded");
@@ -52,12 +64,19 @@ contract TransactionContract {
 
         forSale[watchId] = false;
 
-        IManagementContract(managementContract).transferToBuyer(watchId, msg.sender);
+        // Call ManagementContract to transfer ownership to buyer
+        IManagementContract(managementContract).transferToBuyer(
+            watchId,
+            msg.sender
+        );
     }
 
-
+    // release funds to the seller after verification
     function releaseFunds(uint256 watchId, address recipient) external {
-        require(status[watchId] == Status.AwaitingConfirmation, "Invalid state");
+        require(
+            status[watchId] == Status.AwaitingConfirmation,
+            "Invalid state"
+        );
         require(!fundsReleased[watchId], "Already released");
 
         fundsReleased[watchId] = true;
@@ -68,8 +87,12 @@ contract TransactionContract {
         emit FundsReleased(recipient, watchId, amount[watchId]);
     }
 
+    // Refund buyer if verification fails
     function refundBuyer(uint256 watchId) external {
-        require(status[watchId] == Status.AwaitingConfirmation, "Cannot refund");
+        require(
+            status[watchId] == Status.AwaitingConfirmation,
+            "Cannot refund"
+        );
         require(!refunded[watchId], "Already refunded");
 
         refunded[watchId] = true;

@@ -1,53 +1,57 @@
+<!-- Initial landing page to connect user's MetaMask, redirect to home.html after clicking connect-->
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TimeBlock | Welcome</title>
   <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
-  <link rel="stylesheet" href="static/style.css"/>
+  <link rel="stylesheet" href="static/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-<main class="container">
-  <section class="card text-center">
-    <div class="logo-container">
-      <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
-      <h1 class="app-title">TimeBlock</h1>
-    </div>
-    <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
-    <button id="connectWallet" class="primary-btn">
-      <img src="static/img/2048px-MetaMask_Fox.png" alt="MetaMask" class="wallet-icon">
-      Connect MetaMask
-    </button>
-  </section>
-</main>
+  <main class="container">
+    <section class="card text-center">
+      <div class="logo-container">
+        <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
+        <h1 class="app-title">TimeBlock</h1>
+      </div>
+      <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
+      <button id="connectWallet" class="primary-btn">
+        <img src="static/img/2048px-MetaMask_Fox.png" alt="MetaMask" class="wallet-icon">
+        Connect MetaMask
+      </button>
+    </section>
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script>
-  const connectBtn = document.getElementById("connectWallet");
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const connectBtn = document.getElementById("connectWallet");
 
-  connectBtn.addEventListener("click", async () => {
-    if (!window.ethereum) {
-      alert("Please install MetaMask to use TimeBlock.");
-      return;
-    }
+    connectBtn.addEventListener("click", async () => {
+      if (!window.ethereum) {
+        alert("Please install MetaMask to use TimeBlock.");
+        return;
+      }
 
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      console.log("Connected wallet:", address);
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        console.log("Connected wallet:", address);
 
-      // Redirect to main role selection page
-      window.location.href = "home.html";
-    } catch (err) {
-      console.error("Wallet connection failed:", err);
-      alert("Wallet connection failed. Please try again.");
-    }
-  });
-</script>
+        window.location.href = "home.html";
+      } catch (err) {
+        console.error("Wallet connection failed:", err);
+        alert("Wallet connection failed. Please try again.");
+      }
+    });
+  </script>
 </body>
+
 </html>

@@ -10,14 +10,18 @@ contract RegistrationContract {
         string manufacturer;
         string productionDate;
         uint256 timestamp;
-        address issuedTo;  // Who registered the watch
+        address issuedTo;
     }
 
     mapping(uint256 => Watch) public watches;
 
-    event WatchRegistered(uint256 indexed watchId, address indexed issuedTo, string model);
+    event WatchRegistered(
+        uint256 indexed watchId,
+        address indexed issuedTo,
+        string model
+    );
 
-    // Anyone can register a watch
+    // Function to register a new watch to the blockchain
     function registerWatch(
         string memory _model,
         string memory _serialNumber,
@@ -38,7 +42,10 @@ contract RegistrationContract {
         emit WatchRegistered(watchCount, msg.sender, _model);
     }
 
-    function getWatchDetails(uint256 watchId)
+    // Function to return full metadata of a watch by ID
+    function getWatchDetails(
+        uint256 watchId
+    )
         public
         view
         returns (

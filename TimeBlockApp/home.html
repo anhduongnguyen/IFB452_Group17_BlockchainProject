@@ -1,73 +1,78 @@
+<!-- Home page where user can choose specific stakeholder dashboard -->
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TimeBlock | Home</title>
   <link rel="icon" type="image/x-icon" href="static/img/wrist-watch.png">
-  <link rel="stylesheet" href="static/style.css"/>
+  <link rel="stylesheet" href="static/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-<main class="container" id="mainApp">
-  <section class="card">
-    <div class="logo-container">
-      <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
-      <h1 class="app-title">TimeBlock</h1>
-    </div>
-    <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
-
-    <div id="walletAddress" class="wallet-address">
-      <img src="static/img/2048px-MetaMask_Fox.png" class="wallet-inline-icon" alt="Fox">
-      <span id="walletText">Connecting...</span>
-    </div>
-
-    <div class="roles">
-      <h2>Select Your Role</h2>
-      <div class="role-grid">
-        <a href="manufacturer.html" class="role-btn">
-          <img src="static/img/manufacture.png" class="role-icon" alt="Manufacturer Icon">
-          <span class="role-label">Manufacturer</span>
-        </a>
-        <a href="retailer.html" class="role-btn">
-          <img src="static/img/store.png" class="role-icon" alt="Retailer Icon">
-          <span class="role-label">Retailer</span>
-        </a>
-        <a href="customer.html" class="role-btn">
-          <img src="static/img/buyer.png" class="role-icon" alt="Buyer Icon">
-          <span class="role-label">Customer</span>
-        </a>
-        <a href="reseller.html" class="role-btn">
-          <img src="static/img/reseller.png" class="role-icon" alt="Reseller Icon">
-          <span class="role-label">Reseller</span>
-        </a>
+  <main class="container" id="mainApp">
+    <section class="card">
+      <div class="logo-container">
+        <img class="watch_img" src="static/img/wrist-watch.png" alt="Watch logo">
+        <h1 class="app-title">TimeBlock</h1>
       </div>
-    </div>
-  </section>
-</main>
+      <p class="subtitle">Authenticate and trade luxury watches on the blockchain.</p>
 
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script>
-  const walletText = document.getElementById('walletText');
+      <div id="walletAddress" class="wallet-address">
+        <img src="static/img/2048px-MetaMask_Fox.png" class="wallet-inline-icon" alt="Fox">
+        <span id="walletText">Connecting...</span>
+      </div>
 
-  window.addEventListener("DOMContentLoaded", async () => {
-    if (!window.ethereum) {
-      walletText.textContent = "MetaMask not detected.";
-      return;
-    }
+      <div class="roles">
+        <h2>Select Your Role</h2>
+        <div class="role-grid">
+          <a href="manufacturer.html" class="role-btn">
+            <img src="static/img/manufacture.png" class="role-icon" alt="Manufacturer Icon">
+            <span class="role-label">Manufacturer</span>
+          </a>
+          <a href="retailer.html" class="role-btn">
+            <img src="static/img/store.png" class="role-icon" alt="Retailer Icon">
+            <span class="role-label">Retailer</span>
+          </a>
+          <a href="customer.html" class="role-btn">
+            <img src="static/img/buyer.png" class="role-icon" alt="Buyer Icon">
+            <span class="role-label">Customer</span>
+          </a>
+          <a href="reseller.html" class="role-btn">
+            <img src="static/img/reseller.png" class="role-icon" alt="Reseller Icon">
+            <span class="role-label">Reseller</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const account = await signer.getAddress();
-      walletText.textContent = `Connected wallet: ${account}`;
-    } catch (err) {
-      console.error("Error connecting wallet:", err);
-      walletText.textContent = "Error connecting wallet.";
-    }
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    const walletText = document.getElementById('walletText');
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      if (!window.ethereum) {
+        walletText.textContent = "MetaMask not detected.";
+        return;
+      }
+
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const account = await signer.getAddress();
+        walletText.textContent = `Connected wallet: ${account}`;
+      } catch (err) {
+        console.error("Error connecting wallet:", err);
+        walletText.textContent = "Error connecting wallet.";
+      }
+    });
+  </script>
 </body>
+
 </html>
