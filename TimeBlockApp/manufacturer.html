@@ -87,7 +87,9 @@
 
     const transactionHistory = [];
 
-    // Load transaction history from localStorage 
+    /**
+    * Updates the transaction history in the UI and saves it to localStorage.
+    */
     function updateHistory() {
       localStorage.setItem('manufacturerHistory', JSON.stringify(transactionHistory));
       const box = document.getElementById("historyBox");
@@ -96,7 +98,10 @@
         : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
     }
 
-    // Load watch options for dropdowns
+    /**
+    * Loads watch options for dropdowns by querying the registration and management contracts.
+    * Populates both the certificate view and assignment dropdowns.
+    */
     async function loadWatchOptions() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const regContract = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -121,7 +126,10 @@
       }
     }
 
-    // Register new watch and generate certificate
+    /**
+    * Registers a new watch (generates a certificate) using the registration contract.
+    * Validates input, calls the contract, and updates the dropdown list.
+    */
     async function registerWatch() {
       const serial = document.getElementById("serial").value;
       const brand = document.getElementById("brand").value;
@@ -154,7 +162,10 @@
       }
     }
 
-    // Show certificate details for selected watch
+    /**
+    * Displays a certificate's details in an alert based on the selected watch from the dropdown.
+    * Fetches metadata and ownership status from blockchain.
+    */
     async function showCertificate() {
       const selectedId = parseInt(watchDropdown.value);
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -177,7 +188,10 @@
       alert(message);
     }
 
-    // Assign watch to retailer via management contract
+    /**
+    * Assigns a selected watch to a retailer using the management contract.
+    * Validates input, transfers ownership, logs the transaction, and refreshes dropdowns.
+    */
     async function assignToRetailer() {
       const retailer = document.getElementById("retailerAddress").value;
       const selectedId = parseInt(assignDropdown.value);
@@ -224,7 +238,10 @@
       }
     }
 
-    // Clear transaction history
+   /**
+    * Clears the local transaction history for the manufacturer.
+    * Also resets the UI display.
+    */
     function clearHistory() {
       transactionHistory.length = 0;
       localStorage.removeItem('manufacturerHistory');

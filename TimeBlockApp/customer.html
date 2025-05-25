@@ -57,7 +57,7 @@
               <button id="buyBtn" class="primary-btn full-width">Buy Now</button>
             </div>
           </div>
-          
+
           <!-- Available watches (listed by retailer) -->
           <div class="form-section">
             <div class="form-header">
@@ -130,7 +130,9 @@
 
     const transactionHistory = [];
 
-    // Update transaction history in local storage and UI
+    /**
+    * Updates the transaction history in the UI and localStorage.
+    */
     function updateHistory() {
       localStorage.setItem('buyerHistory', JSON.stringify(transactionHistory));
       const box = document.getElementById("transactionBox");
@@ -139,7 +141,11 @@
         : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
     }
 
-    // Load watches owned by the customer for resale
+    /**
+    * Loads watches currently owned by the buyer that are not listed for resale.
+    * Populates the "sell" dropdown.
+    * @param {string} currentAddress - Wallet address of the buyer
+    */
     async function loadBuyerWatches(currentAddress) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -160,7 +166,11 @@
       }
     }
 
-    // Load watches owned by the seller for verification in the dropdown
+    /**
+    * Loads watches currently owned by the buyer for certificate verification.
+    * Populates the seller certificate verification dropdown.
+    * @param {string} currentAddress - Wallet address of the buyer
+    */
     async function loadSellerOwnedWatches(currentAddress) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -180,7 +190,10 @@
       }
     }
 
-    // Load watches available for sale by retailers
+    /**
+    * Loads watches that are available for purchase from retailers.
+    * Populates the buy dropdown and renders the listed watches section.
+    */
     async function loadWatchesForSale() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -222,7 +235,11 @@
       }
     }
 
-    // Show certificate details for verification
+    /**
+    * Displays certificate details (model, serial number, etc.) of a selected watch.
+    * Works for both buyer and seller views.
+    * @param {Event} event - Click event from the verification button
+    */
     async function showCertificateForVerification(event) {
       const isSeller = event.target.id === "viewCertBtnSell";
       const dropdown = isSeller
@@ -254,7 +271,10 @@
       alert(message);
     }
 
-    // List a watch for resale box functionality
+    /**
+    * Allows a buyer to list their owned watch for resale.
+    * Validates inputs and interacts with the transaction contract to create a listing.
+    */
     async function listWatchForResale() {
       const button = document.getElementById("listSaleBtn");
       const selectedId = parseInt(sellDropdown.value);
@@ -297,7 +317,10 @@
       }
     }
 
-    // Load watches listed for verification in the dropdown 
+    /**
+    * Loads all watches currently listed for resale (regardless of owner).
+    * Populates the resale verification dropdown.
+    */
     async function loadListedWatchesForVerification() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -320,7 +343,9 @@
       }
     }
 
-    // Load watches listed for resale by customers in the "Watches Listed for Sale" section
+    /**
+    * Displays watches currently listed for resale by the buyer in the UI.
+    */
     async function loadResaleListedWatches() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -352,9 +377,12 @@
         box.innerHTML = "<li>No watches currently listed for resale.</li>";
       }
     }
-    
-    
-    // Function to buy a watch
+
+    /**
+    * Allows the buyer to purchase a listed watch using ETH.
+    * Transfers ETH and updates ownership on-chain.
+    * @param {number} watchId - ID of the watch being purchased
+    */
     async function buyWatch(watchId) {
       const buyBtn = document.getElementById("buyBtn");
 
@@ -411,7 +439,10 @@
       }
     }
 
-    // Listen for PaymentDeposited events to update transaction history
+    /**
+    * Listens for PaymentDeposited events on the blockchain.
+    * Automatically appends relevant transaction data to history when events are emitted.
+    */
     async function listenToPayments() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
@@ -430,7 +461,9 @@
       });
     }
 
-    // Clear transaction history box and local storage
+    /**
+    * Clears the transaction history for the buyer from both the UI and localStorage.
+    */
     function clearHistory() {
       transactionHistory.length = 0;
       localStorage.removeItem('manufacturerHistory');
@@ -464,7 +497,6 @@
           updateHistory();
         }
 
-        // Hook up UI buttons
         document.getElementById("buyBtn").addEventListener("click", () => {
           const selected = buyDropdown.value;
           if (!selected) {

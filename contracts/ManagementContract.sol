@@ -70,12 +70,10 @@ contract ManagementContract {
         emit DebugOwnershipTransferred(watchId, buyer);
     }
 
-    // View the retailer a watch was assigned to
     function getAssignedRetailer(uint256 watchId) external view returns (address) {
         return assignedRetailer[watchId];
     }
 
-    // View the current owner of a watch
     function getCurrentOwner(uint256 watchId) external view returns (address) {
         return watchToOwner[watchId];
     }

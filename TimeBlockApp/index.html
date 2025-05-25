@@ -32,6 +32,9 @@
   <script>
     const connectBtn = document.getElementById("connectWallet");
 
+    /**
+     * Connects to the user's MetaMask wallet and redirects to home.html
+     */
     connectBtn.addEventListener("click", async () => {
       if (!window.ethereum) {
         alert("Please install MetaMask to use TimeBlock.");

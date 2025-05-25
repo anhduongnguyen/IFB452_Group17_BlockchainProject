@@ -26,7 +26,7 @@
         <img src="static/img/2048px-MetaMask_Fox.png" class="wallet-inline-icon" alt="Fox">
         <span id="walletText">Connecting...</span>
       </div>
-
+      
       <div class="roles">
         <h2>Select Your Role</h2>
         <div class="role-grid">
@@ -55,6 +55,9 @@
   <script>
     const walletText = document.getElementById('walletText');
 
+    /**
+     * Connects to the user's MetaMask wallet and displays the address
+     */
     window.addEventListener("DOMContentLoaded", async () => {
       if (!window.ethereum) {
         walletText.textContent = "MetaMask not detected.";

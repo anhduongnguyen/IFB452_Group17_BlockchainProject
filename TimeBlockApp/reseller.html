@@ -93,7 +93,9 @@
     const historyBox = document.getElementById("historyBox");
     const transactionHistory = [];
 
-    // Load transaction history from localStorage
+    /**
+    * Updates the transaction history in the UI and localStorage.
+    */
     function updateHistory() {
       localStorage.setItem('resellerHistory', JSON.stringify(transactionHistory));
       const box = document.getElementById("historyBox");
@@ -102,7 +104,10 @@
         : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
     }
 
-    // load watches listed for resale by the customer
+    /**
+    * Loads all watches currently listed for resale by customers,
+    * and populates both the dropdowns and the visible list.
+    */
     async function loadWatchesForSale() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -140,43 +145,50 @@
       }
     }
 
-    // Function to buy a watch from the dropdown
+    /**
+    * Purchases the selected watch from the dropdown,
+    * transfers ETH, updates ownership and UI.
+    */
     async function buyWatch() {
       const selectedId = parseInt(buyDropdown.value);
       if (isNaN(selectedId)) return alert("Please select a watch to buy.");
-    
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-    
+
       const price = await txContract.getPrice(selectedId);
-    
+
       resellerBuyBtn.disabled = true;
       resellerBuyBtn.textContent = "Processing...";
-    
+
       const tx = await txContract.deposit(selectedId, { value: price });
       await tx.wait();
-    
+
       const details = await reg.getWatchDetails(selectedId);
       const label = `${details.model} (${details.serialNumber})`;
       const eth = ethers.utils.formatEther(price);
-    
+
       transactionHistory.push(`Purchased ${label} for ${eth} ETH (Tx: ${tx.hash.slice(0, 10)}...)`);
       updateHistory();
-    
+
       await loadOwnedWatches(address);
       alert(`Purchase successful! Tx Hash: ${tx.hash}`);
       await loadOwnedWatches(address);
       await loadWatchesForSale();
-    
+
       resellerBuyBtn.disabled = false;
       resellerBuyBtn.textContent = "Buy Now";
     }
-    
 
-    // Load owned watches for the connected retailer wallet
+    /**
+    * Loads all watches owned by the current connected wallet
+    * and populates dropdowns for certificate viewing.
+    * 
+    * @param {string} address - The connected wallet address.
+    */
     async function loadOwnedWatches(address) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -198,7 +210,11 @@
       }
     }
 
-    // Show certificate details for the selected watch
+    /**
+    * Fetches and displays the certificate details for a selected watch.
+    * 
+    * @param {string} dropdownId - The ID of the dropdown to retrieve selected watchId.
+    */
     async function showCertificate(dropdownId) {
       const selectedId = parseInt(document.getElementById(dropdownId).value);
       if (isNaN(selectedId)) return alert("Please select a watch.");
@@ -222,7 +238,9 @@
       alert(message);
     }
 
-    // Clear transaction history
+    /**
+    * Clears the transaction history from memory and localStorage.
+    */
     function clearHistory() {
       transactionHistory.length = 0;
       localStorage.removeItem("resellerHistory");

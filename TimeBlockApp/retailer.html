@@ -81,7 +81,9 @@
 
     const transactionHistory = [];
 
-    // Load history from localStorage 
+    /**
+    * Updates the transaction history UI and persists it in localStorage.
+    */
     function updateHistory() {
       localStorage.setItem('retailerHistory', JSON.stringify(transactionHistory));
       const box = document.getElementById("transactionBox");
@@ -90,7 +92,9 @@
         : '<ul>' + transactionHistory.map(item => `<li>${item}</li>`).join('') + '</ul>';
     }
 
-    // Connect to MetaMask and get wallet address
+    /**
+    * Connects to MetaMask and displays the connected wallet address.
+    */
     async function connectWallet() {
       if (!window.ethereum) {
         walletText.textContent = "MetaMask not found";
@@ -103,7 +107,10 @@
       walletText.textContent = `Connected wallet: ${address}`;
     }
 
-    // Load watch options for dropdowns
+    /**
+    * Loads watches owned by the connected wallet into dropdowns.
+    * Populates both certificate and price selection lists.
+    */
     async function loadWatchOptions() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -143,7 +150,9 @@
       }
     }
 
-    // Show certificate details for selected watch
+    /**
+    * Displays certificate and authenticity details for the selected watch.
+    */
     async function showCertificate() {
       const selectedId = parseInt(viewDropdown.value);
       if (isNaN(selectedId)) {
@@ -170,7 +179,10 @@
       alert(message);
     }
 
-    // Create a listing for the selected watch
+    /**
+    * Lists a selected watch for sale at the given ETH price.
+    * Validates inputs and updates UI after listing.
+    */
     async function createListing() {
       const button = document.getElementById("listSaleBtn");
       const selectedId = parseInt(priceDropdown.value);
@@ -210,7 +222,9 @@
       }
     }
 
-    // Load watches currently listed for sale
+    /**
+    * Loads and displays watches that are currently listed for sale.
+    */
     async function loadListedWatches() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
@@ -242,7 +256,9 @@
       }
     }
 
-    // Listen for payment events and update transaction history
+    /**
+    * Subscribes to the PaymentDeposited event and logs incoming payments.
+    */
     async function listenToPayments() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, provider);
@@ -255,7 +271,9 @@
       });
     }
 
-    // Clear transaction history
+    /**
+    * Clears transaction history from memory and localStorage.
+    */
     function clearHistory() {
       transactionHistory.length = 0;
       localStorage.removeItem('retailerHistory');
