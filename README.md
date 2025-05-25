@@ -194,7 +194,7 @@ To clone the project, open up the Remix IDE app on your desktop.
 
 4. Transaction History: View assignment created
 
- <img src="TimeBlockApp/static/img/img13.png" alt="Description" height="300">
+ <img src="TimeBlockApp/static/img/img13.png" alt="Description" height="400">
 
 ### Retailer Workflow
 1. View Certificate: Select watch → Click 'Show Certificate'
@@ -205,7 +205,7 @@ To clone the project, open up the Remix IDE app on your desktop.
 
 4. Transaction History: View listings log and pricing
 
- <img src="TimeBlockApp/static/img/img15.png" alt="Description" height="300">
+ <img src="TimeBlockApp/static/img/img15.png" alt="Description" height="400">
 
 ### Buyer Workflow 
 #### Buy View:
@@ -218,7 +218,7 @@ To clone the project, open up the Remix IDE app on your desktop.
 
 4. Transaction History: Logs all deposits
 
- <img src="TimeBlockApp/static/img/img14.png" alt="Description" height="300">
+ <img src="TimeBlockApp/static/img/img14.png" alt="Description" height="400">
 
 #### Sell View:
 
@@ -230,7 +230,7 @@ To clone the project, open up the Remix IDE app on your desktop.
 
 Only watches owned by the user and not currently listed will be selectable
 
- <img src="TimeBlockApp/static/img/img16.png" alt="Description" height="300">
+ <img src="TimeBlockApp/static/img/img16.png" alt="Description" height="400">
 
 ### Reseller Workflow
 
@@ -242,7 +242,7 @@ Only watches owned by the user and not currently listed will be selectable
 
 4. View History: Track all transfers and deposits
 
- <img src="TimeBlockApp/static/img/img17.png" alt="Description" height="300">
+ <img src="TimeBlockApp/static/img/img17.png" alt="Description" height="400">
 
 ## 9. Troubleshooting
 
