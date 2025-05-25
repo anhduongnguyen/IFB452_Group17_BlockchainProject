@@ -144,29 +144,37 @@
     async function buyWatch() {
       const selectedId = parseInt(buyDropdown.value);
       if (isNaN(selectedId)) return alert("Please select a watch to buy.");
-
+    
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const address = await signer.getAddress();
       const txContract = new ethers.Contract(TRANSACTION_CONTRACT_ADDRESS, TRANSACTION_ABI, signer);
       const reg = new ethers.Contract(REG_CONTRACT_ADDRESS, REG_ABI, provider);
-
+    
       const price = await txContract.getPrice(selectedId);
+    
+      resellerBuyBtn.disabled = true;
+      resellerBuyBtn.textContent = "Processing...";
+    
       const tx = await txContract.deposit(selectedId, { value: price });
       await tx.wait();
-      buyBtn.disabled = true;
-      buyBtn.textContent = "Processing...";
-
+    
       const details = await reg.getWatchDetails(selectedId);
       const label = `${details.model} (${details.serialNumber})`;
       const eth = ethers.utils.formatEther(price);
-
+    
       transactionHistory.push(`Purchased ${label} for ${eth} ETH (Tx: ${tx.hash.slice(0, 10)}...)`);
       updateHistory();
-
+    
       await loadOwnedWatches(address);
       alert(`Purchase successful! Tx Hash: ${tx.hash}`);
+      await loadOwnedWatches(address);
+      await loadWatchesForSale();
+    
+      resellerBuyBtn.disabled = false;
+      resellerBuyBtn.textContent = "Buy Now";
     }
+    
 
     // Load owned watches for the connected retailer wallet
     async function loadOwnedWatches(address) {

@@ -57,7 +57,7 @@
               <button id="buyBtn" class="primary-btn full-width">Buy Now</button>
             </div>
           </div>
-
+          
           <!-- Available watches (listed by retailer) -->
           <div class="form-section">
             <div class="form-header">
@@ -198,9 +198,9 @@
           if (!listed) continue;
 
           const currentOwner = await mgmt.getCurrentOwner(i);
-          const isRetailer = await mgmt.isRetailer(currentOwner);
+          //const isRetailer = await mgmt.isRetailer(currentOwner);
 
-          if (!isRetailer) continue;
+          //if (!isRetailer) continue;
 
           const watch = await reg.getWatchDetails(i);
           const rawPrice = await txContract.getPrice(i);
@@ -288,6 +288,7 @@
 
         await loadBuyerWatches(await signer.getAddress());
         await loadResaleListedWatches();
+        alert(`Watch listed for sale at ${ethValue} ETH.`);
       } catch (err) {
         alert("Listing failed: " + (err.data?.message || err.message));
       } finally {
@@ -351,7 +352,8 @@
         box.innerHTML = "<li>No watches currently listed for resale.</li>";
       }
     }
-
+    
+    
     // Function to buy a watch
     async function buyWatch(watchId) {
       const buyBtn = document.getElementById("buyBtn");
@@ -453,7 +455,7 @@
         await loadWatchesForSale();
         await loadListedWatchesForVerification();
         await loadSellerOwnedWatches(address);
-        await loadResaleListedWatches();
+        await loadResaleListedWatches(address);
         await listenToPayments();
 
         const savedHistory = localStorage.getItem('buyerHistory');
@@ -492,14 +494,17 @@
           sellView.style.display = selected === "sell" ? "grid" : "none";
 
           if (selected === "sell") {
+            await loadBuyerWatches(address);
             await loadSellerOwnedWatches(address);
-            await loadResaleListedWatches();
+            await loadResaleListedWatches(address);
           }
         });
 
       } catch (err) {
+        console.error("Error connecting to wallet:", err);
         walletText.textContent = "Error connecting to wallet";
       }
+
     });
 
   </script>
