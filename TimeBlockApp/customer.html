@@ -149,15 +149,13 @@
   <script type="module">
     import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/+esm";
     import { REG_ABI, MANAGEMENT_ABI, TRANSACTION_ABI } from './static/ABI.js';
+    import { REG_CONTRACT_ADDRESS, MANAGEMENT_CONTRACT_ADDRESS, TRANSACTION_CONTRACT_ADDRESS } from './static/addresses.js';
   
     const walletText = document.getElementById('walletText');
     const sellDropdown = document.getElementById("sellDropdown");
     const buyDropdown = document.getElementById("buyDropdown");
     const certVerifyDropdown = document.getElementById("certVerifyDropdown");
-  
-    const REG_CONTRACT_ADDRESS = "0xe2a29568361a2da8783e73d34ee255088297845f";
-    const MANAGEMENT_CONTRACT_ADDRESS = "0xe6ba2cfef549aa6622d1c1cc9329e75a4ed56edf";
-    const TRANSACTION_CONTRACT_ADDRESS = "0x6b8ed23fd1ed328bdf6d605ac0ca9570847a6c7e";
+
   
     async function loadBuyerWatches(currentAddress) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);

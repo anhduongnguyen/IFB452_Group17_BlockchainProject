@@ -1,10 +1,5 @@
 const REG_ABI = [
     {
-      "inputs": [],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
       "anonymous": false,
       "inputs": [
         {
@@ -67,19 +62,6 @@ const REG_ABI = [
         {
           "internalType": "address",
           "name": "issuedTo",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "owner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
           "type": "address"
         }
       ],
@@ -228,19 +210,6 @@ const REG_ABI = [
       ],
       "name": "WatchTransferred",
       "type": "event"
-    },
-    {
-      "inputs": [],
-      "name": "admin",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
     },
     {
       "inputs": [
@@ -393,7 +362,7 @@ const REG_ABI = [
       "inputs": [
         {
           "internalType": "address",
-          "name": "_retailer",
+          "name": "_managementContract",
           "type": "address"
         }
       ],
@@ -431,7 +400,7 @@ const REG_ABI = [
         {
           "indexed": true,
           "internalType": "address",
-          "name": "retailer",
+          "name": "to",
           "type": "address"
         },
         {
@@ -659,6 +628,19 @@ const REG_ABI = [
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "managementContract",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256",
@@ -696,24 +678,16 @@ const REG_ABI = [
           "internalType": "uint256",
           "name": "watchId",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
         }
       ],
       "name": "releaseFunds",
       "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "retailer",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     },
     {

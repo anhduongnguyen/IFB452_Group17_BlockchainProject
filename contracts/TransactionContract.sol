@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract TransactionContract {
-    address public retailer;
+interface IManagementContract {
+    function transferToBuyer(uint256 watchId, address buyer) external;
+}
 
+contract TransactionContract {
     enum Status { AwaitingDeposit, AwaitingConfirmation, Completed, Refunded }
+
+    address public managementContract;
 
     // Per-watch mappings
     mapping(uint256 => uint256) public watchPrices;
@@ -16,12 +20,12 @@ contract TransactionContract {
     mapping(uint256 => bool) public refunded;
 
     event PaymentDeposited(address indexed buyer, uint256 watchId, uint256 amount);
-    event FundsReleased(address indexed retailer, uint256 watchId, uint256 amount);
+    event FundsReleased(address indexed to, uint256 watchId, uint256 amount);
     event BuyerRefunded(address indexed buyer, uint256 watchId, uint256 amount);
     event WatchListed(uint256 indexed watchId, uint256 priceInWei);
 
-    constructor(address _retailer) {
-        retailer = _retailer;
+    constructor(address _managementContract) {
+        managementContract = _managementContract;
     }
 
     function createListing(uint256 watchId, uint256 priceInWei) external {
@@ -45,24 +49,24 @@ contract TransactionContract {
         status[watchId] = Status.AwaitingConfirmation;
 
         emit PaymentDeposited(msg.sender, watchId, msg.value);
+
+        IManagementContract(managementContract).transferToBuyer(watchId, msg.sender);
     }
 
-    function releaseFunds(uint256 watchId) external {
-        require(msg.sender == buyer[watchId], "Only buyer can release");
+    function releaseFunds(uint256 watchId, address recipient) external {
         require(status[watchId] == Status.AwaitingConfirmation, "Invalid state");
-        require(!fundsReleased[watchId], "Funds already released");
+        require(!fundsReleased[watchId], "Already released");
 
         fundsReleased[watchId] = true;
         status[watchId] = Status.Completed;
 
-        payable(retailer).transfer(amount[watchId]);
+        payable(recipient).transfer(amount[watchId]);
 
-        emit FundsReleased(retailer, watchId, amount[watchId]);
+        emit FundsReleased(recipient, watchId, amount[watchId]);
     }
 
     function refundBuyer(uint256 watchId) external {
-        require(msg.sender == retailer, "Only retailer can refund");
-        require(status[watchId] == Status.AwaitingConfirmation, "Cannot refund now");
+        require(status[watchId] == Status.AwaitingConfirmation, "Cannot refund");
         require(!refunded[watchId], "Already refunded");
 
         refunded[watchId] = true;
