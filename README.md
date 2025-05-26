@@ -259,19 +259,25 @@ Only watches owned by the user and not currently listed will be selectable
 
 * Ensure wallet has test ETH
 
+## 10. Business Process Modeling Notation (BPMN) Diagram
+ <img src="TimeBlockApp/static/img/IFB452_group17_finalBPMN.png" alt="Description" width="1000">
 
-## 10. Future Improvements
+
+## 11. Future Improvements
 
 1. Certificate lifecycle management improvement: this can be done by Implementing a system to revocation and renewal processes so that lost or compromised certificates can be invalidated or reissued securely.
 2. Advanced analytics dashboard: This can be given to stakeholders to view more data about how their whatches are going through the process 
 3. Imporve performance and gass by Utilising smart contract design patterns and explore meta-transactions or relayer networks to lower user costs per each transaction.
 4. Implement an admin contract and admin role so stakeholders can only accessed their dashboards and functionalities.
 
-## 11. License
+## 12. License
 
-MIT License.
+MIT License
+```
+ https://opensource.org/license/mit
+```
 
-## 12. Acknowledgements
+## 13. Acknowledgements
 
 * Ethereum docs
 * Ethers.js library
@@ -279,7 +285,7 @@ MIT License.
 * Testnet faucets
 * Unit Coordinators, lecturers and tutors of the IFB452 course at QUT
 
-## 12. Developers
+## 14. Developers
 
 * Ngoc Anh Duong Nguyen
 * Jay Bowles 
